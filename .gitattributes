@@ -1,1 +1,2 @@
 *.exe filter=lfs diff=lfs merge=lfs -text
+docs/stover_setup_v2.0.exe filter=lfs diff=lfs merge=lfs -text
