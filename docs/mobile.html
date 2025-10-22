@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>U-Net Segmentation Demo</title>
+<title>Stover</title>
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
@@ -154,11 +154,11 @@
     </section>
 
     <section id="summary">
-      <h2>Summary</h2>
+      <h2>Stover Summary</h2>
       <div id="summaryContent">
         <p>Upload an image to view the summary.</p>
       </div>
-      <button id="saveSummaryBtn" style="margin-top: 20px;" disabled>Save Summary</button>
+      <button id="saveSummaryBtn" style="margin-top: 5px;" disabled>Save Summary</button>
     </section>
 
   </div>
@@ -294,12 +294,11 @@ function updateSummary() {
       </div>
     </div>
     <div id="summaryText">
-      <p><b>Soil:</b> ${lastResults.soilPct}% 
+      <p style="margin:0px;"><b>Soil:</b> ${lastResults.soilPct}% 
          <b>Plant:</b> ${lastResults.plantPct}% 
          <b>Residue:</b> ${lastResults.residuePct}%
       </p>
-      <br/>
-      <p>Stover</p>
+      <p style="margin:0px;">Stover</p>
 
     </div>
   `;
