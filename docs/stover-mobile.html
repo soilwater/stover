@@ -188,7 +188,7 @@ const buttons = {
 let session, lastResults = {};
 
 async function initModel() {
-  session = await ort.InferenceSession.create("./unet_20250924191812.onnx");
+  session = await ort.InferenceSession.create("unet_20250924191812.onnx");
   console.log("✅ Model loaded");
 }
 initModel();
