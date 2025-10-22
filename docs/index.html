@@ -24,13 +24,24 @@
       height: auto;
       margin-bottom: 1.5rem;
     }
-    .download-link {
-      margin-top: 1rem;
-      font-size: 1.25rem;
-    }
+
     .title{
         font-size: 6rem !important;
     }
+
+  .button-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap; /* ensures it still looks good on small screens */
+    margin-top: 15px;
+  }
+
+  .button-row .button {
+    font-size: 0.9rem;
+    padding: 10px 15px;
+    white-space: nowrap;
+  }
 
   </style>
 </head>
@@ -42,15 +53,29 @@
     </p>
   </section>
   <img src="landing_img.png" alt="Stover results illustration">
-  <a href="https://soilwater.github.io/stover/dataset.html" target="_blank">View dataset</a>
   </br>
-  <a 
-    href="https://github.com/soilwater/stover/raw/main/docs/stover_setup_v2.0.exe" 
-    class="button is-primary download-link"
-    download="Download Stover"
-    target="_blank"
-  >
-    Download v2.0 for Windows
-  </a>
+
+  <div class="button-row">
+    <a href="https://github.com/soilwater/stover/raw/main/docs/stover_setup_v2.0.exe" class="button download-link" downloadtarget="_blank">
+      💻 Desktop (Win)
+    </a>
+
+    <a href="https://soilwater.github.io/stover/mobile" class="button" target="_blank">
+      🌐 Web App
+    </a>
+
+    <a href="https://github.com/soilwater/stover" class="button" download target="_blank">
+      📁 GitHub Repo
+    </a>
+
+    <a href="https://soilwater.github.io/stover/dataset.html" class="button" download target="_blank">
+      🖼️ Dataset
+    </a>
+
+    <a href="https://github.com/soilwater/stover/blob/main/docs/Stover%20Desktop%20App%20User%20Guide%20v1.0.pdf" class="button" target="_blank">
+      📘 User Guide (PDF)
+    </a>
+  </div>
+
 </body>
 </html>
