@@ -128,6 +128,18 @@ input[type=file] {
   word-break: break-word;
 }
 
+.emoji-list {
+  list-style: none;       /* remove default bullets */
+  padding-left: 0;        /* remove default padding */
+  text-align: left;       /* align text to the left */
+  margin: 0;
+}
+
+.emoji-list li {
+  margin-bottom: 8px;     /* space between items */
+  line-height: 1.4;
+}
+
 @media (max-width: 600px) {
   h2 { font-size: 1.5em; }
   button { padding: 14px 22px; font-size: 18px; }
@@ -142,6 +154,16 @@ input[type=file] {
       <h2>Select or capture a photo</h2>
       <!-- <input type="file" id="fileInput" accept="image/*" capture="environment"> -->
       <input type="file" id="fileInput" accept="image/*">
+      
+      <ul class="emoji-list" style="margin-top: 50px;">
+        <li><b>Tips:</b></li>
+        <li>📸 For residue, capture images with little or no vegetation</li>
+        <li>📏 Take photos 2–3 ft (0.6–0.9 m) above the ground</li>
+        <li>📷 Take multiple photos for broader coverage</li>
+        <li>☀️ Avoid strong shadows</li>
+        <li>🚫 Avoid objects like shoes, flags, or stakes in the frame</li>
+        <li>🎯 Stover will only capture the central part of the image</li>
+      </ul>
     </section>
 
     <section id="original">
@@ -155,7 +177,7 @@ input[type=file] {
     <section id="classified">
       <h2>Classified Image</h2>
       <canvas id="outputCanvas"></canvas>
-      <p style="margin:0px; font-size:0.8em; font-style: italic;">Running model: unet_20250924191812</p>
+      <p style="margin:0px; font-size:0.8em; font-style: italic;">Model: unet_20250924191812</p>
       <div id="info">
         <p id="imageNameClassified" class="image-name"></p>
         <div id="percentages">Upload an image to see results.</div>
@@ -274,16 +296,17 @@ async function classifyImage() {
   const soilPct = (counts[0]/total*100).toFixed(1);
   const plantPct = (counts[1]/total*100).toFixed(1);
   const residuePct = (counts[2]/total*100).toFixed(1);
+  const totalPct = ((counts[1] + counts[2])/total*100).toFixed(1);
 
-  lastResults = { soilPct, plantPct, residuePct };
+  lastResults = { soilPct, plantPct, residuePct, totalPct };
 
   percentagesDiv.innerHTML = `
   <p><span class="legend-box" style="background-color: rgb(139,69,19);"></span><b>Soil:</b> ${soilPct}%</p>
   <p><span class="legend-box" style="background-color: rgb(34,139,34);"></span><b>Plant:</b> ${plantPct}%</p>
   <p><span class="legend-box" style="background-color: rgb(255,215,0);"></span><b>Residue:</b> ${residuePct}%</p>
+  <p><b>Total cover:</b> ${totalPct}%</p>
 `;
 }
-
 
 </script>
 </body>
