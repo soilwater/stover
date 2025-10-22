@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>U-Net Segmentation Demo</title>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+  :root {
+    --slide-transition: 0.5s ease;
+  }
+
+  body {
+    font-family: sans-serif;
+    background: #fafafa;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .slide-container {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 500vw; /* 5 slides */
+    height: 100vh;
+    transition: transform var(--slide-transition);
+  }
+
+  section {
+    flex: 0 0 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 20px;
+    text-align: center;
+  }
+
+  h2 {
+    margin-bottom: 15px;
+  }
+
+  canvas {
+    max-width: 90vw;
+    max-height: 70vh;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    object-fit: contain;
+  }
+
+  nav {
+    position: fixed;
+    bottom: 12px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    z-index: 10;
+  }
+
+  button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    background-color: #0078d7;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  button:hover:not(:disabled) {
+    background-color: #005fa3;
+  }
+
+  button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+
+  #percentages p {
+    margin: 6px 0;
+    font-size: 26px;
+  }
+
+  input[type=file] {
+    font-size: 16px;
+    margin-top: 10px;
+  }
+
+  #summaryContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  /*
+  #summaryImages {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+*/
+
+  #summaryImages {
+  display: flex;
+  flex-direction: column; /* stack vertically */
+  align-items: center;    /* center horizontally */
+  gap: 20px;
+}
+
+  .summary-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .summary-box p {
+    margin-top: 8px;
+  }
+
+  @media (max-width: 600px) {
+    h2 { font-size: 1.2em; }
+    button { padding: 8px 14px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+  <div class="slide-container" id="slides">
+    <section id="new">
+      <h1 style="font-size: 6rem;">Stover</h1>
+      <h2>New Image</h2>
+      <input type="file" id="fileInput" accept="image/*" capture="environment">
+      <p>Select or capture a photo to classify.</p>
+    </section>
+
+    <section id="original">
+      <h2>Original Image</h2>
+      <canvas id="inputCanvas"></canvas>
+    </section>
+
+    <section id="classified">
+      <h2>Classified Image</h2>
+      <canvas id="outputCanvas"></canvas>
+    </section>
+
+    <section id="results">
+      <h2>Results</h2>
+      <div id="percentages">Upload an image to see results.</div>
+    </section>
+
+    <section id="summary">
+      <h2>Summary</h2>
+      <div id="summaryContent">
+        <p>Upload an image to view the summary.</p>
+      </div>
+      <button id="saveSummaryBtn" style="margin-top: 20px;" disabled>Save Summary</button>
+    </section>
+
+  </div>
+
+  <nav>
+    <button onclick="goToSlide(0)">New</button>
+    <button id="btnOriginal" onclick="goToSlide(1)" disabled>Original</button>
+    <button id="btnClassified" onclick="goToSlide(2)" disabled>Classified</button>
+    <button id="btnResults" onclick="goToSlide(3)" disabled>Results</button>
+    <button id="btnSummary" onclick="goToSlide(4)" disabled>Summary</button>
+  </nav>
+
+<script>
+const slides = document.getElementById("slides");
+const inputCanvas = document.getElementById("inputCanvas");
+const outputCanvas = document.getElementById("outputCanvas");
+const fileInput = document.getElementById("fileInput");
+const percentagesDiv = document.getElementById("percentages");
+const summaryContent = document.getElementById("summaryContent");
+const saveSummaryBtn = document.getElementById("saveSummaryBtn");
+const buttons = {
+  original: document.getElementById("btnOriginal"),
+  classified: document.getElementById("btnClassified"),
+  results: document.getElementById("btnResults"),
+  summary: document.getElementById("btnSummary")
+};
+let session, lastResults = {};
+
+async function initModel() {
+  session = await ort.InferenceSession.create("./unet_20250924191812.onnx");
+  console.log("✅ Model loaded");
+}
+initModel();
+
+function goToSlide(n) {
+  slides.style.transform = `translateX(-${n * 100}vw)`;
+}
+
+function enableButtons() {
+  buttons.original.disabled = false;
+  buttons.classified.disabled = false;
+  buttons.results.disabled = false;
+  buttons.summary.disabled = false;
+}
+
+fileInput.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+
+  img.onload = async () => {
+    const minSide = Math.min(img.width, img.height);
+    const sx = (img.width - minSide) / 2;
+    const sy = (img.height - minSide) / 2;
+    const ctx = inputCanvas.getContext("2d");
+    inputCanvas.width = 512;
+    inputCanvas.height = 512;
+    ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, 512, 512);
+
+    enableButtons();
+    goToSlide(1);
+    await classifyImage();
+  };
+  img.src = url;
+});
+
+async function classifyImage() {
+  const ctx = inputCanvas.getContext("2d");
+  const imageData = ctx.getImageData(0, 0, 512, 512);
+  const { data } = imageData;
+  const floatData = new Float32Array(3 * 512 * 512);
+
+  for (let i = 0; i < 512 * 512; i++) {
+    floatData[i] = data[i * 4] / 255.0;
+    floatData[i + 512 * 512] = data[i * 4 + 1] / 255.0;
+    floatData[i + 2 * 512 * 512] = data[i * 4 + 2] / 255.0;
+  }
+
+  const tensor = new ort.Tensor("float32", floatData, [1, 3, 512, 512]);
+  const result = await session.run({ input: tensor });
+  const output = result.output.data;
+
+  const mask = new Uint8ClampedArray(512 * 512 * 4);
+  const counts = [0, 0, 0]; // soil, plant, residue
+
+  for (let i = 0; i < 512 * 512; i++) {
+    const soil = output[i];
+    const plant = output[i + 512 * 512];
+    const residue = output[i + 2 * 512 * 512];
+    const maxClass = soil > plant && soil > residue ? 0 :
+                     plant > residue ? 1 : 2;
+    counts[maxClass]++;
+
+    let r=0,g=0,b=0;
+    if (maxClass === 0) { r=139; g=69; b=19; }
+    else if (maxClass === 1) { r=34; g=139; b=34; }
+    else if (maxClass === 2) { r=255; g=215; b=0; }
+
+    const idx = i * 4;
+    mask[idx] = r; mask[idx+1] = g; mask[idx+2] = b; mask[idx+3] = 255;
+  }
+
+  outputCanvas.width = 512;
+  outputCanvas.height = 512;
+  outputCanvas.getContext("2d").putImageData(new ImageData(mask, 512, 512), 0, 0);
+
+  const total = counts.reduce((a,b)=>a+b,0);
+  const soilPct = (counts[0]/total*100).toFixed(1);
+  const plantPct = (counts[1]/total*100).toFixed(1);
+  const residuePct = (counts[2]/total*100).toFixed(1);
+
+  lastResults = { soilPct, plantPct, residuePct };
+  percentagesDiv.innerHTML = `
+    <p><b>Soil:</b> ${soilPct}%</p>
+    <p><b>Plant:</b> ${plantPct}%</p>
+    <p><b>Residue:</b> ${residuePct}%</p>
+  `;
+
+  updateSummary();
+}
+
+function updateSummary() {
+  summaryContent.innerHTML = `
+    <div id="summaryImages">
+      <div class="summary-box">
+        <canvas id="summaryOriginal" width="256" height="256"></canvas>
+        <p>Original</p>
+      </div>
+      <div class="summary-box">
+        <canvas id="summaryClassified" width="256" height="256"></canvas>
+        <p>Classified</p>
+      </div>
+    </div>
+    <div id="summaryText">
+      <p><b>Soil:</b> ${lastResults.soilPct}% 
+         <b>Plant:</b> ${lastResults.plantPct}% 
+         <b>Residue:</b> ${lastResults.residuePct}%
+      </p>
+      <br/>
+      <p>Stover</p>
+
+    </div>
+  `;
+
+  const origCtx = document.getElementById("summaryOriginal").getContext("2d");
+  const classCtx = document.getElementById("summaryClassified").getContext("2d");
+  origCtx.drawImage(inputCanvas, 0, 0, 256, 256);
+  classCtx.drawImage(outputCanvas, 0, 0, 256, 256);
+
+  saveSummaryBtn.disabled = false;
+}
+
+saveSummaryBtn.addEventListener("click", async () => {
+  const summaryContentDiv = document.getElementById("summaryContent");
+
+  html2canvas(summaryContentDiv).then(canvas => {
+    const link = document.createElement("a");
+    
+    // Create timestamp YYYYMMDDHHMMSS
+    const now = new Date();
+    const pad = (n) => n.toString().padStart(2, '0');
+    const timestamp = now.getFullYear().toString() +
+                      pad(now.getMonth() + 1) +
+                      pad(now.getDate()) +
+                      pad(now.getHours()) +
+                      pad(now.getMinutes()) +
+                      pad(now.getSeconds());
+
+    link.download = `stover_summary_${timestamp}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+  });
+});
+
+
+</script>
+</body>
+</html>
