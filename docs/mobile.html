@@ -32,11 +32,23 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     box-sizing: border-box;
     padding: 20px;
     text-align: center;
   }
+
+/*
+  section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: 
+    padding-top: 60px; 
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+*/
 
   h2 {
     margin-bottom: 15px;
@@ -93,7 +105,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 5px;
     padding: 20px;
   }
 
@@ -110,7 +122,7 @@
   display: flex;
   flex-direction: column; /* stack vertically */
   align-items: center;    /* center horizontally */
-  gap: 20px;
+  gap: 5px;
 }
 
   .summary-box {
@@ -123,6 +135,15 @@
     margin-top: 8px;
   }
 
+  .legend-box {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 1px solid black;
+    margin-right: 2px;
+    vertical-align: middle;
+}
+
   @media (max-width: 600px) {
     h2 { font-size: 1.2em; }
     button { padding: 8px 14px; font-size: 14px; }
@@ -132,7 +153,7 @@
 <body>
   <div class="slide-container" id="slides">
     <section id="new">
-      <h1 style="font-size: 6rem; margin-top: 0px;">Stover</h1>
+      <h1 style="font-size: 5em;">Stover App</h1>
       <h2>New Image</h2>
       <!-- <input type="file" id="fileInput" accept="image/*" capture="environment"> -->
       <input type="file" id="fileInput" accept="image/*">
@@ -147,19 +168,15 @@
     <section id="classified">
       <h2>Classified Image</h2>
       <canvas id="outputCanvas"></canvas>
-    </section>
-
-    <section id="results">
-      <h2>Results</h2>
       <div id="percentages">Upload an image to see results.</div>
     </section>
 
     <section id="summary">
-      <h2>Stover Summary</h2>
+      <h2>Summary</h2>
       <div id="summaryContent">
         <p>Upload an image to view the summary.</p>
       </div>
-      <button id="saveSummaryBtn" style="margin-top: 5px;" disabled>Save Summary</button>
+      <button id="saveSummaryBtn" style="margin-top: 0px;" disabled>Save</button>
     </section>
 
   </div>
@@ -168,8 +185,7 @@
     <button onclick="goToSlide(0)">New</button>
     <button id="btnOriginal" onclick="goToSlide(1)" disabled>Original</button>
     <button id="btnClassified" onclick="goToSlide(2)" disabled>Classified</button>
-    <button id="btnResults" onclick="goToSlide(3)" disabled>Results</button>
-    <button id="btnSummary" onclick="goToSlide(4)" disabled>Summary</button>
+    <button id="btnSummary" onclick="goToSlide(3)" disabled>Summary</button>
   </nav>
 
 <script>
@@ -183,7 +199,6 @@ const saveSummaryBtn = document.getElementById("saveSummaryBtn");
 const buttons = {
   original: document.getElementById("btnOriginal"),
   classified: document.getElementById("btnClassified"),
-  results: document.getElementById("btnResults"),
   summary: document.getElementById("btnSummary")
 };
 let session, lastResults = {};
@@ -198,10 +213,28 @@ function goToSlide(n) {
   slides.style.transform = `translateX(-${n * 100}vw)`;
 }
 
+let startX = 0;
+let currentSlide = 0;
+
+slides.addEventListener('touchstart', (e) => {
+  startX = e.touches[0].clientX;
+});
+
+slides.addEventListener('touchend', (e) => {
+  const endX = e.changedTouches[0].clientX;
+  const diff = endX - startX;
+
+  if (Math.abs(diff) > 50) { // swipe threshold
+    if (diff < 0 && currentSlide < 3) currentSlide++; // swipe left
+    else if (diff > 0 && currentSlide > 0) currentSlide--; // swipe right
+
+    goToSlide(currentSlide);
+  }
+});
+
 function enableButtons() {
   buttons.original.disabled = false;
   buttons.classified.disabled = false;
-  buttons.results.disabled = false;
   buttons.summary.disabled = false;
 }
 
@@ -274,9 +307,12 @@ async function classifyImage() {
 
   lastResults = { soilPct, plantPct, residuePct };
   percentagesDiv.innerHTML = `
-    <p><b>Soil:</b> ${soilPct}%</p>
-    <p><b>Plant:</b> ${plantPct}%</p>
-    <p><b>Residue:</b> ${residuePct}%</p>
+    <p>
+      <span class="legend-box" style="background-color: rgb(139,69,19);"></span><b>Soil:</b>${soilPct}% &nbsp;
+      <span class="legend-box" style="background-color: rgb(34,139,34);"></span><b>Plant:</b>${plantPct}% &nbsp;
+      <span class="legend-box" style="background-color: rgb(255,215,0);"></span><b>Residue:</b>${residuePct}%
+    </p><br/>
+    <p style="margin:0px; font-size:0.6em;">Model: unet_20250924191812</p>
   `;
 
   updateSummary();
@@ -285,6 +321,7 @@ async function classifyImage() {
 function updateSummary() {
   summaryContent.innerHTML = `
     <div id="summaryImages">
+      <p style="margin:0px;"><b>Stover App</b></p>
       <div class="summary-box">
         <canvas id="summaryOriginal" width="256" height="256"></canvas>
       </div>
@@ -293,13 +330,13 @@ function updateSummary() {
       </div>
     </div>
     <div id="summaryText">
-      <p style="margin:0px;"><b>Soil:</b> ${lastResults.soilPct}% 
-         <b>Plant:</b> ${lastResults.plantPct}% 
-         <b>Residue:</b> ${lastResults.residuePct}%
-      </p>
-      <p style="margin:0px;">Stover</p>
-
+      <p style="margin:0px;">
+        <span class="legend-box" style="background-color: rgb(139,69,19);"></span><b>Soil:</b>${lastResults.soilPct}%
+        <span class="legend-box" style="background-color: rgb(34,139,34);"></span><b>Plant:</b>${lastResults.plantPct}%
+        <span class="legend-box" style="background-color: rgb(255,215,0);"></span><b>Residue:</b>${lastResults.residuePct}%
+      </p><br/>
     </div>
+
   `;
 
   const origCtx = document.getElementById("summaryOriginal").getContext("2d");
