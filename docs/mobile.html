@@ -27,7 +27,7 @@
   .slide-container {
     display: flex;
     flex-wrap: nowrap;
-    width: 400vw; /* 4 slides */
+    width: 300vw; /* 3 slides */
     height: 100vh;
     transition: transform var(--slide-transition);
   }
@@ -43,18 +43,6 @@
     padding: 20px;
     text-align: center;
   }
-
-/*
-  section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: 
-    padding-top: 60px; 
-    box-sizing: border-box;
-    overflow-y: auto;
-}
-*/
 
   h2 {
     margin-bottom: 15px;
@@ -101,63 +89,49 @@ button.active {
   background-color: #5c0372; /* darker shade for active slide */
 }
 
-  #percentages p {
-    margin: 6px 0;
-    font-size: 26px;
-  }
-
-  input[type=file] {
-    font-size: 16px;
-    margin-top: 10px;
-  }
-
-  #summaryContent {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    padding: 5px;
-  }
-
-  /*
-  #summaryImages {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-  }
-*/
-
-  #summaryImages {
-  display: flex;
-  flex-direction: column; /* stack vertically */
-  align-items: center;    /* center horizontally */
-  gap: 5px;
+#percentages p {
+  margin: 6px 0;
+  font-size: 28px;
 }
 
-  .summary-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .summary-box p {
-    margin-top: 8px;
-  }
-
-  .legend-box {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 1px solid black;
-    margin-right: 2px;
-    vertical-align: middle;
+input[type=file] {
+  font-size: 16px;
+  margin-top: 10px;
+}
+ 
+.legend-box {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid black;
+  margin-right: 2px;
+  vertical-align: middle;
 }
 
-  @media (max-width: 600px) {
-    h2 { font-size: 1.5em; }
-    button { padding: 14px 22px; font-size: 18px; }
-  }
+
+#info {
+  text-align: left;
+  max-width: 90vw;
+  margin-top: 15px;
+}
+
+#info p {
+  margin: 4px 0;
+  font-size: 18px;
+}
+
+.image-name {
+  margin-top: 8px;
+  font-size: 16px;
+  color: #333;
+  text-align: center;
+  word-break: break-word;
+}
+
+@media (max-width: 600px) {
+  h2 { font-size: 1.5em; }
+  button { padding: 14px 22px; font-size: 18px; }
+ }
 
 </style>
 </head>
@@ -165,29 +139,27 @@ button.active {
   <div class="slide-container" id="slides">
     <section id="new">
       <h1 style="font-size: 5em;">Stover App</h1>
-      <h2>New Image</h2>
+      <h2>Select or capture a photo</h2>
       <!-- <input type="file" id="fileInput" accept="image/*" capture="environment"> -->
       <input type="file" id="fileInput" accept="image/*">
-      <p>Select or capture a photo to classify.</p>
     </section>
 
     <section id="original">
       <h2>Original Image</h2>
       <canvas id="inputCanvas"></canvas>
+      <div id="info">
+        <p id="imageNameOriginal" class="image-name"></p>
+      </div>
     </section>
 
     <section id="classified">
       <h2>Classified Image</h2>
       <canvas id="outputCanvas"></canvas>
-      <div id="percentages">Upload an image to see results.</div>
-    </section>
-
-    <section id="summary">
-      <h2>Summary</h2>
-      <div id="summaryContent">
-        <p>Upload an image to view the summary.</p>
+      <p style="margin:0px; font-size:0.8em; font-style: italic;">Running model: unet_20250924191812</p>
+      <div id="info">
+        <p id="imageNameClassified" class="image-name"></p>
+        <div id="percentages">Upload an image to see results.</div>
       </div>
-      <button id="saveSummaryBtn" style="margin-top: 0px;" disabled>Save</button>
     </section>
 
   </div>
@@ -196,7 +168,6 @@ button.active {
     <button onclick="goToSlide(0)">New</button>
     <button id="btnOriginal" onclick="goToSlide(1)" disabled>Original</button>
     <button id="btnClassified" onclick="goToSlide(2)" disabled>Classified</button>
-    <button id="btnSummary" onclick="goToSlide(3)" disabled>Summary</button>
   </nav>
 
 <script>
@@ -205,12 +176,9 @@ const inputCanvas = document.getElementById("inputCanvas");
 const outputCanvas = document.getElementById("outputCanvas");
 const fileInput = document.getElementById("fileInput");
 const percentagesDiv = document.getElementById("percentages");
-const summaryContent = document.getElementById("summaryContent");
-const saveSummaryBtn = document.getElementById("saveSummaryBtn");
 const buttons = {
   original: document.getElementById("btnOriginal"),
   classified: document.getElementById("btnClassified"),
-  summary: document.getElementById("btnSummary")
 };
 let session, lastResults = {};
 
@@ -230,31 +198,10 @@ function goToSlide(n) {
   });
 }
 
-/*
-let startX = 0;
-let currentSlide = 0;
-
-slides.addEventListener('touchstart', (e) => {
-  startX = e.touches[0].clientX;
-});
-
-slides.addEventListener('touchend', (e) => {
-  const endX = e.changedTouches[0].clientX;
-  const diff = endX - startX;
-
-  if (Math.abs(diff) > 50) { // swipe threshold
-    if (diff < 0 && currentSlide < 3) currentSlide++; // swipe left
-    else if (diff > 0 && currentSlide > 0) currentSlide--; // swipe right
-
-    goToSlide(currentSlide);
-  }
-});
-*/
 
 function enableButtons() {
   buttons.original.disabled = false;
   buttons.classified.disabled = false;
-  buttons.summary.disabled = false;
 }
 
 fileInput.addEventListener("change", async (e) => {
@@ -262,6 +209,10 @@ fileInput.addEventListener("change", async (e) => {
   if (!file) return;
   const url = URL.createObjectURL(file);
   const img = new Image();
+
+  // Show image name
+  document.getElementById("imageNameOriginal").innerHTML = `<b>File: </b> ${file.name}`;
+  document.getElementById("imageNameClassified").innerHTML = `<b>File: </b> ${file.name}`;
 
   img.onload = async () => {
     const minSide = Math.min(img.width, img.height);
@@ -325,68 +276,13 @@ async function classifyImage() {
   const residuePct = (counts[2]/total*100).toFixed(1);
 
   lastResults = { soilPct, plantPct, residuePct };
+
   percentagesDiv.innerHTML = `
-    <p>
-      <span class="legend-box" style="background-color: rgb(139,69,19);"></span><b>Soil:</b>${soilPct}% &nbsp;
-      <span class="legend-box" style="background-color: rgb(34,139,34);"></span><b>Plant:</b>${plantPct}% &nbsp;
-      <span class="legend-box" style="background-color: rgb(255,215,0);"></span><b>Residue:</b>${residuePct}%
-    </p><br/>
-    <p style="margin:0px; font-size:0.6em;">Model: unet_20250924191812</p>
-  `;
-
-  updateSummary();
+  <p><span class="legend-box" style="background-color: rgb(139,69,19);"></span><b>Soil:</b> ${soilPct}%</p>
+  <p><span class="legend-box" style="background-color: rgb(34,139,34);"></span><b>Plant:</b> ${plantPct}%</p>
+  <p><span class="legend-box" style="background-color: rgb(255,215,0);"></span><b>Residue:</b> ${residuePct}%</p>
+`;
 }
-
-function updateSummary() {
-  summaryContent.innerHTML = `
-    <div id="summaryImages">
-      <p style="margin:0px;"><b>Stover App</b></p>
-      <div class="summary-box">
-        <canvas id="summaryOriginal" width="256" height="256"></canvas>
-      </div>
-      <div class="summary-box">
-        <canvas id="summaryClassified" width="256" height="256"></canvas>
-      </div>
-    </div>
-    <div id="summaryText">
-      <p style="margin:0px;">
-        <span class="legend-box" style="background-color: rgb(139,69,19);"></span><b>Soil:</b>${lastResults.soilPct}%
-        <span class="legend-box" style="background-color: rgb(34,139,34);"></span><b>Plant:</b>${lastResults.plantPct}%
-        <span class="legend-box" style="background-color: rgb(255,215,0);"></span><b>Residue:</b>${lastResults.residuePct}%
-      </p>
-    </div>
-
-  `;
-
-  const origCtx = document.getElementById("summaryOriginal").getContext("2d");
-  const classCtx = document.getElementById("summaryClassified").getContext("2d");
-  origCtx.drawImage(inputCanvas, 0, 0, 256, 256);
-  classCtx.drawImage(outputCanvas, 0, 0, 256, 256);
-
-  saveSummaryBtn.disabled = false;
-}
-
-saveSummaryBtn.addEventListener("click", async () => {
-  const summaryContentDiv = document.getElementById("summaryContent");
-
-  html2canvas(summaryContentDiv).then(canvas => {
-    const link = document.createElement("a");
-    
-    // Create timestamp YYYYMMDDHHMMSS
-    const now = new Date();
-    const pad = (n) => n.toString().padStart(2, '0');
-    const timestamp = now.getFullYear().toString() +
-                      pad(now.getMonth() + 1) +
-                      pad(now.getDate()) +
-                      pad(now.getHours()) +
-                      pad(now.getMinutes()) +
-                      pad(now.getSeconds());
-
-    link.download = `stover_summary_${timestamp}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
-  });
-});
 
 
 </script>
