@@ -174,16 +174,19 @@ input[type=file] {
   background-color: #9051a3;
 }
 
-.export-link {
-  display: inline-block;
+.small-button {
   font-size: 14px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background-color: #fafafa;
   color: #9051a3;
-  text-decoration: underline;
+  border: 1px solid #9051a3;
   cursor: pointer;
   margin-top: 10px;
 }
-.export-link:hover {
-  color: #5c0372;
+.small-button:hover {
+  background-color: #9051a3;
+  color: white;
 }
 
 @media (max-width: 600px) {
@@ -232,7 +235,7 @@ input[type=file] {
         <p id="imageNameClassified" class="image-name"></p>
         <div id="percentages">Upload an image to see results.</div>
       </div>
-      <a href="#" id="saveSummaryBtn" class="export-link">Export Summary</a>
+      <button id="saveSummaryBtn" class="small-button">Export</button>
     </section>
 
   </div>
