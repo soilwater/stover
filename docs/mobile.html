@@ -152,13 +152,15 @@ input[type=file] {
 /* Style the custom label as a button */
 .file-label {
   display: inline-block;
+  border: 3px solid #282828;
   background-color: #ffffff;
-  color: rgb(20, 20, 20);
-  font-size: 18px;
+  color: #282828;
+  font-size: 22px;
   padding: 14px 26px;
   border-radius: 8px;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 50px;
+  margin-bottom: 20px;
   text-align: center;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   transition: background-color 0.3s;
@@ -184,11 +186,11 @@ input[type=file] {
     <section id="new">
       <img src="logo_and_text.png" alt="Stover logo" class="logo" width="300 px", height="auto">
 
-      <h2>Select or capture a photo</h2>
-      <!-- <input type="file" id="fileInput" accept="image/*" capture="environment">
+      <!--<h2>Select or capture a photo</h2>
+       <input type="file" id="fileInput" accept="image/*" capture="environment">
       <input type="file" id="fileInput" accept="image/*">  -->
       
-      <label for="fileInput" class="file-label">Upload/Capture</label>
+      <label for="fileInput" class="file-label"><b>Upload / Capture</b></label>
       <input type="file" id="fileInput" accept="image/*">
       <p id="statusMessage" style="margin-top:5px; font-size:14px; color:#000000; font-style:italic;"></p>
 
