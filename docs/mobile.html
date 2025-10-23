@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="icon" type="image/png" sizes="32x32" href="logo.ico">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#9051a3">
 <title>Stover</title>
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -23,7 +26,6 @@
     touch-action: pan-y;      /* only allow vertical touch gestures */
     overscroll-behavior-x: none; /* prevent momentum scroll past edges */
   }
-
 
 
   .slide-container {
@@ -110,7 +112,6 @@ input[type=file] {
   vertical-align: middle;
 }
 
-
 #info {
   text-align: left;
   max-width: 90vw;
@@ -138,8 +139,37 @@ input[type=file] {
 }
 
 .emoji-list li {
-  margin-bottom: 8px;     /* space between items */
+  margin-bottom: 5px;     /* space between items */
   line-height: 1.4;
+}
+
+
+/* Hide the ugly native file input */
+input[type=file] {
+  display: none;
+}
+
+/* Style the custom label as a button */
+.file-label {
+  display: inline-block;
+  background-color: #ffffff;
+  color: rgb(20, 20, 20);
+  font-size: 18px;
+  padding: 14px 26px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: background-color 0.3s;
+}
+
+.file-label:hover {
+  background-color: #ffffff;
+}
+
+.file-label:active {
+  background-color: #4a025d;
 }
 
 @media (max-width: 600px) {
@@ -155,9 +185,12 @@ input[type=file] {
       <img src="logo_and_text.png" alt="Stover logo" class="logo" width="300 px", height="auto">
 
       <h2>Select or capture a photo</h2>
-      <!-- <input type="file" id="fileInput" accept="image/*" capture="environment"> -->
-      <input type="file" id="fileInput" accept="image/*">
+      <!-- <input type="file" id="fileInput" accept="image/*" capture="environment">
+      <input type="file" id="fileInput" accept="image/*">  -->
       
+      <label for="fileInput" class="file-label">Upload/Capture</label>
+      <input type="file" id="fileInput" accept="image/*">
+
       <ul class="emoji-list" style="margin-top: 50px;">
         <li><b>Tips:</b></li>
         <li>📏 Hold camera 2–3 ft (0.6–0.9 m) above ground</li>
@@ -310,6 +343,13 @@ async function classifyImage() {
 `;
 }
 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(() => console.log("✅ Service Worker registered"))
+    .catch(err => console.error("Service Worker registration failed:", err));
+}
+
 </script>
+
 </body>
 </html>
