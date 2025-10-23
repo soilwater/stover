@@ -2,7 +2,7 @@
   "name": "Stover",
   "short_name": "Stover",
   "description": "Analyze crop residue and green cover from images — works offline.",
-  "start_url": "./index.html",
+  "start_url": "./mobile.html",
   "display": "standalone",
   "background_color": "#fafafa",
   "theme_color": "#9051a3",
