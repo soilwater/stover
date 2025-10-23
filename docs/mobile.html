@@ -190,6 +190,7 @@ input[type=file] {
       
       <label for="fileInput" class="file-label">Upload/Capture</label>
       <input type="file" id="fileInput" accept="image/*">
+      <p id="statusMessage" style="margin-top:5px; font-size:14px; color:#000000; font-style:italic;"></p>
 
       <ul class="emoji-list" style="margin-top: 50px;">
         <li><b>Tips:</b></li>
@@ -197,7 +198,7 @@ input[type=file] {
         <li>☀️ Avoid strong shadows</li>
         <li>🚫 Keep shoes, flags, and stakes out of frame</li>
         <li>🎯 Stover captures the center of the image</li>
-        <li>📲 Tap Share/Menu → “Add to Home Screen”</li>
+        <li>📲 Offline use: Share/Menu → “Add to Home Screen”</li>
       </ul>
     </section>
 
@@ -237,12 +238,14 @@ const buttons = {
   original: document.getElementById("btnOriginal"),
   classified: document.getElementById("btnClassified"),
 };
+
 let session, lastResults = {};
 
 async function initModel() {
   session = await ort.InferenceSession.create("unet_20250924191812.onnx");
   console.log("✅ Model loaded");
 }
+
 initModel();
 
 function goToSlide(n) {
@@ -267,6 +270,8 @@ fileInput.addEventListener("change", async (e) => {
   const url = URL.createObjectURL(file);
   const img = new Image();
 
+  document.getElementById("statusMessage").textContent = "Analyzing image...";
+
   // Show image name
   document.getElementById("imageNameOriginal").innerHTML = `<b>File: </b> ${file.name}`;
   document.getElementById("imageNameClassified").innerHTML = `<b>File: </b> ${file.name}`;
@@ -283,6 +288,8 @@ fileInput.addEventListener("change", async (e) => {
     enableButtons();
     goToSlide(1);
     await classifyImage();
+    document.getElementById("statusMessage").textContent = "";
+
   };
   img.src = url;
 });
