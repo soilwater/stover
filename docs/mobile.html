@@ -189,10 +189,43 @@ input[type=file] {
   color: white;
 }
 
+
+
 @media (max-width: 600px) {
   h2 { font-size: 1.5em; }
   button { padding: 14px 22px; font-size: 18px; }
  }
+
+
+/* Data storage code */
+
+.table-container {
+  max-height: 60vh; 
+  overflow-y: auto;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  text-align: center;
+  font-size: 14px;
+}
+
+th {
+  background-color: #9051a3;
+  color: white;
+  position: sticky;
+  top: 0;
+}
+
 
 </style>
 </head>
@@ -238,12 +271,42 @@ input[type=file] {
       <button id="saveSummaryBtn" class="small-button">Export</button>
     </section>
 
+    <section id="tableView">
+    <h2>Data</h2>
+    <p style="font-size:0.9em; color:#f50f0f; margin-bottom: 5px;">
+      Geographic coordinates correspond to the current location of the device at the time of classification.
+    </p>
+    <div class="table-container">
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>File</th>
+            <th>Timestamp</th>
+            <th>Lat</th>
+            <th>Lon</th>
+            <th>Soil</th>
+            <th>Plant</th>
+            <th>Residue</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;">
+      <button id="downloadCSV">Download CSV</button>
+      <button id="resetTable">Reset</button>
+    </div>
+  </section>
   </div>
 
   <nav>
     <button onclick="goToSlide(0)">New</button>
     <button id="btnOriginal" onclick="goToSlide(1)" disabled>Original</button>
     <button id="btnClassified" onclick="goToSlide(2)" disabled>Classified</button>
+    <button id="btnData" onclick="goToSlide(3)" disabled>Data</button>
   </nav>
 
 <script>
@@ -255,6 +318,7 @@ const percentagesDiv = document.getElementById("percentages");
 const buttons = {
   original: document.getElementById("btnOriginal"),
   classified: document.getElementById("btnClassified"),
+  data: document.getElementById("btnData"),
 };
 
 let session, lastResults = {};
@@ -274,12 +338,18 @@ function goToSlide(n) {
     if (i === n) btn.classList.add("active");
     else btn.classList.remove("active");
   });
+
+  // Populate table if user goes to History
+  if (n === 3) {  // replace 3 with your Table View slide index
+    populateTable();
+  }
 }
 
 
 function enableButtons() {
   buttons.original.disabled = false;
   buttons.classified.disabled = false;
+  buttons.data.disabled = false;
 }
 
 fileInput.addEventListener("change", async (e) => {
@@ -364,8 +434,54 @@ async function classifyImage() {
   <p><span class="legend-box" style="background-color: rgb(139,69,19);"></span><b>Soil:</b> ${soilPct}%</p>
   <p><span class="legend-box" style="background-color: rgb(34,139,34);"></span><b>Plant:</b> ${plantPct}%</p>
   <p><span class="legend-box" style="background-color: rgb(255,215,0);"></span><b>Residue:</b> ${residuePct}%</p>
-  <p><b>Total cover:</b> ${totalPct}%</p>
-`;
+  <p><b>Total cover:</b> ${totalPct}%</p>`;
+
+
+  // Save to localStorage
+  const fileName = document.getElementById("imageNameClassified").textContent.replace(/^File:\s*/, '');
+
+  // Try to get location if available
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        saveImageData({
+          fileName,
+          timestamp: new Date().toISOString(),
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          soil: lastResults.soilPct,
+          plant: lastResults.plantPct,
+          residue: lastResults.residuePct,
+          totalCover: lastResults.totalPct
+        });
+      },
+      () => {
+        // fallback if location not available or denied
+        saveImageData({
+          fileName,
+          timestamp: new Date().toISOString(),
+          latitude: "",
+          longitude: "",
+          soil: lastResults.soilPct,
+          plant: lastResults.plantPct,
+          residue: lastResults.residuePct,
+          totalCover: lastResults.totalPct
+        });
+      }
+    );
+  } else {
+    // no geolocation API
+    saveImageData({
+      fileName,
+      timestamp: new Date().toISOString(),
+      latitude: "",
+      longitude: "",
+      soil: lastResults.soilPct,
+      plant: lastResults.plantPct,
+      residue: lastResults.residuePct,
+      totalCover: lastResults.totalPct
+    });
+  }
 }
 
 
@@ -465,6 +581,93 @@ saveSummaryBtn.addEventListener("click", async () => {
 });
 
 
+
+// Beginning of code for data table
+
+function saveImageData(entry) {
+  const data = JSON.parse(localStorage.getItem("stoverData") || "[]");
+  data.push(entry);
+  localStorage.setItem("stoverData", JSON.stringify(data));
+}
+
+
+function populateTable() {
+  const tbody = document.querySelector("#historyTable tbody");
+  tbody.innerHTML = "";  // clear previous rows
+
+  const data = JSON.parse(localStorage.getItem("stoverData") || "[]");
+
+  if (!data.length) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="9">No history available</td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+
+  data.forEach((item, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${item.fileName ?? ""}</td>
+      <td>${item.timestamp ?? ""}</td>
+      <td>${item.latitude ?? ""}</td>
+      <td>${item.longitude ?? ""}</td>
+      <td>${item.soil ?? ""}</td>
+      <td>${item.plant ?? ""}</td>
+      <td>${item.residue ?? ""}</td>
+      <td>${item.totalCover ?? ""}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+
+document.getElementById("downloadCSV").addEventListener("click", () => {
+  const data = JSON.parse(localStorage.getItem("stoverData") || "[]");
+  if (!data.length) return;
+
+  // Use same headers as table
+  const headers = ["File","Timestamp","Latitude","Longitude","Soil","Plant","Residue","Total"];
+  const csvRows = [headers.join(",")];
+
+  data.forEach(row => {
+    const values = [
+      row.fileName ?? "",
+      row.timestamp ?? "",
+      row.latitude ?? "",
+      row.longitude ?? "",
+      row.soil ?? "",
+      row.plant ?? "",
+      row.residue ?? "",
+      row.totalCover ?? ""
+    ];
+    csvRows.push(values.join(","));
+  });
+
+  const csvString = csvRows.join("\n");
+  const blob = new Blob([csvString], {type: "text/csv"});
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `stover_history_${new Date().toISOString().replace(/[:.]/g,"")}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+});
+
+
+
+document.getElementById("resetTable").addEventListener("click", () => {
+  localStorage.removeItem("stoverData");
+  populateTable();
+});
+
+
+
+// End code for data table
 
 
 if ('serviceWorker' in navigator) {
