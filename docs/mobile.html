@@ -30,10 +30,11 @@
   }
 
   html, body {
-    overflow-x: hidden;       /* no horizontal scrolling */
+    overflow-x: hidden;       /* no horizontal scrolling for the main layout */
     touch-action: pan-y;      /* only allow vertical touch gestures */
     overscroll-behavior-x: none; /* prevent momentum scroll past edges */
   }
+
 
 
   .slide-container {
@@ -201,30 +202,35 @@ input[type=file] {
 
 @media (max-width: 600px) {
   h2 { font-size: 1.5em; }
-  button { padding: 14px 22px; font-size: 18px; }
+  button { padding: 12px 20px; font-size: 17px; }
  }
 
 
 /* Data storage code */
 
-.table-container {
-  max-height: 60vh; 
-  overflow-y: auto;
-  margin-top: 5px;
+.table-wrapper {
+  display: block;            /* allow independent scrolling */
+  overflow-x: auto;          /* horizontal scroll for wide table */
+  overflow-y: auto;          /* vertical scroll if too tall */
+  -webkit-overflow-scrolling: touch;
+  max-height: 60vh;          /* vertical scroll limit */
   border: 1px solid #ccc;
   border-radius: 6px;
+  margin-top: 10px;
+  touch-action: auto;        /* enable both directions */
 }
 
 table {
-  width: 100%;
   border-collapse: collapse;
+  width: max-content;       /* table can be wider than container */
+  min-width: 100%;          /* at least fill container */
 }
 
 th, td {
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  text-align: center;
-  font-size: 14px;
+  padding: 6px 10px;
+  border: 1px solid #aaa;
+  text-align: left;
+  white-space: nowrap;      /* prevent text wrapping */
 }
 
 th {
@@ -232,7 +238,10 @@ th {
   color: white;
   position: sticky;
   top: 0;
+  z-index: 2;
 }
+
+
 
 
 </style>
@@ -287,25 +296,27 @@ th {
     <p style="font-size:0.9em; color:#f50f0f; margin-bottom: 5px;">
       Geographic coordinates correspond to the current location of the device at the time of classification.
     </p>
-    <div class="table-container">
-      <table id="historyTable">
+    <div class="table-wrapper">
+      <table id="dataTable">
         <thead>
           <tr>
             <th>#</th>
             <th>File</th>
             <th>Timestamp</th>
-            <th>Lat</th>
-            <th>Lon</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
             <th>Soil</th>
             <th>Plant</th>
             <th>Residue</th>
-            <th>Total</th>
+            <th>Total Cover</th>
           </tr>
         </thead>
         <tbody>
+          <!-- dynamically generated rows -->
         </tbody>
       </table>
     </div>
+
     <div style="margin-top:10px;">
       <button id="downloadCSV">Download CSV</button>
       <button id="resetTable">Reset</button>
@@ -353,7 +364,7 @@ function goToSlide(n) {
     else btn.classList.remove("active");
   });
 
-  // Populate table if user goes to History
+  // Populate table if user goes to Data
   if (n === 3) {  // replace 3 with your Table View slide index
     populateTable();
   }
@@ -622,14 +633,14 @@ function saveImageData(entry) {
 }
 
 function populateTable() {
-  const tbody = document.querySelector("#historyTable tbody");
+  const tbody = document.querySelector("#dataTable tbody");
   tbody.innerHTML = "";  // clear previous rows
 
   const data = JSON.parse(localStorage.getItem("stoverData") || "[]");
 
   if (!data.length) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="9">No history available</td>`;
+    tr.innerHTML = `<td colspan="9">No data available</td>`;
     tbody.appendChild(tr);
     return;
   }
