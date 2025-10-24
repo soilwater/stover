@@ -214,7 +214,7 @@ input[type=file] {
   max-height: 60vh;
   overflow-y: auto;
   margin-top: 5px;
-  margin-bottom: 20px;
+  margin-bottom: 2px;
 }
 
 .data-card {
@@ -320,6 +320,7 @@ input[type=file] {
       </p>
 
       <div id="cardContainer" class="card-container"></div>
+      <p id="storageCount" style="font-size:0.9em; color:#666; margin-top:2px;"></p>
 
       <div class="data-buttons">
         <button id="downloadCsvBtn">⬇️ Download CSV</button>
@@ -643,6 +644,8 @@ function saveImageData(entry) {
   const data = JSON.parse(localStorage.getItem("stoverData") || "[]");
   data.push(entry);
   localStorage.setItem("stoverData", JSON.stringify(data));
+  updateStorageCount();
+
 }
 
 function renderCards() {
@@ -675,16 +678,19 @@ function renderCards() {
       data.splice(index, 1);
       localStorage.setItem("stoverData", JSON.stringify(data));
       renderCards();
+      updateStorageCount();
     });
 
     container.appendChild(card);
   });
+  updateStorageCount();
 }
 
 document.getElementById("clearStorageBtn").addEventListener("click", () => {
   if (confirm("Are you sure you want to remove all saved data?")) {
     localStorage.removeItem("stoverData");
     renderCards();
+    updateStorageCount();
   }
 });
 
@@ -724,12 +730,16 @@ document.getElementById("downloadCsvBtn").addEventListener("click", () => {
   URL.revokeObjectURL(url);
 });
 
+function updateStorageCount() {
+  const stoverData = JSON.parse(localStorage.getItem("stoverData")) || [];
+  const countEl = document.getElementById("storageCount");
+  countEl.textContent = `You have ${stoverData.length} entr${stoverData.length === 1 ? "y" : "ies"}`;
+}
+
 
 window.addEventListener("load", renderCards);
 
 // End code for data table
-
-
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js')
