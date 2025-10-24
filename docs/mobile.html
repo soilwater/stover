@@ -463,6 +463,12 @@ fileInput.addEventListener("change", async (e) => {
     await classifyImage();
     document.getElementById("statusMessage").textContent = "";
 
+    // Get the note input element
+    const noteInput = document.getElementById("noteInput");
+
+    // Clear it when a new image is loaded
+    noteInput.value = "";
+
   };
   img.src = url;
 });
