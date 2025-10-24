@@ -124,7 +124,7 @@ input[type=file] {
 #info {
   text-align: left;
   max-width: 90vw;
-  margin-top: 15px;
+  margin-top: 10px;
 }
 
 #info p {
@@ -215,6 +215,7 @@ input[type=file] {
   overflow-y: auto;
   margin-top: 5px;
   margin-bottom: 2px;
+  min-width: 300px;
 }
 
 .data-card {
@@ -225,7 +226,6 @@ input[type=file] {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   font-size: 0.9em;
   text-align: left;
-
 }
 
 .data-card p {
@@ -265,6 +265,36 @@ input[type=file] {
   background-color: #f8f8f8;
 }
 
+.note-container {
+  width: 100%;
+  max-width: 512px;
+  margin: 10px auto 0 auto; /* centers it under the image */
+}
+
+.note-container label {
+  font-weight: 500;
+  display: block;
+  margin-bottom: 4px;
+  text-align: left;
+}
+
+#noteInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  resize: none;
+  font-size: 0.95rem;
+}
+
+#charCount {
+  text-align: right;
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 2px;
+}
+
 
 </style>
 </head>
@@ -283,10 +313,10 @@ input[type=file] {
 
       <ul class="emoji-list" style="margin-top: 30x;">
         <li><b>Tips:</b></li>
-        <li>📏 Hold camera 2–3 ft (0.6–0.9 m) above ground</li>
+        <li>📏 Hold camera 2–3 ft (60–90 cm) above ground</li>
         <li>☀️ Avoid strong shadows</li>
         <li>🚫 Keep shoes, flags, and stakes out of frame</li>
-        <li>🎯 Stover captures the center of the image</li>
+        <li>🎯 Stover only captures the center of the image</li>
         <li>📲 Offline use: Share/Menu → “Add to Home”</li>
       </ul>
 
@@ -301,6 +331,17 @@ input[type=file] {
       <div id="info">
         <p id="imageNameOriginal" class="image-name"></p>
       </div>
+      <div class="note-container">
+        <label for="noteInput">Add short note (optional):</label>
+        <textarea
+          id="noteInput"
+          maxlength="40"
+          rows="2"
+          placeholder="e.g., field name, plot number"
+        ></textarea>
+        <div id="charCount">0 / 40</div>
+      </div>
+
     </section>
 
     <section id="classified">
@@ -315,9 +356,10 @@ input[type=file] {
 
     <section id="dataSection">
       <h2>Stored Data</h2>
-      <p id="geoNote" style="font-size:0.9em; color:#666; margin-bottom: 2px;">
-        Geographic coordinates correspond to the current device location.
+      <p id="geoNote" style="font-size:0.9em; color:#666; margin: 2px;">
+        Coordinates reflect your current location
       </p>
+      <p style="font-size:0.9em; color:#666; margin: 2px;">Your data never leaves your device (no server involved)</p>
 
       <div id="cardContainer" class="card-container"></div>
       <p id="storageCount" style="font-size:0.9em; color:#666; margin-top:2px;"></p>
@@ -383,6 +425,11 @@ function goToSlide(n) {
   }
 }
 
+function escapeForCSV(value) {
+  if (value == null) return "";
+  const escaped = String(value).replace(/"/g, '""');
+  return `"${escaped}"`;
+}
 
 function enableButtons() {
   buttons.original.disabled = false;
@@ -490,7 +537,8 @@ async function classifyImage() {
           soil: lastResults.soilPct,
           plant: lastResults.plantPct,
           residue: lastResults.residuePct,
-          totalCover: lastResults.totalPct
+          totalCover: lastResults.totalPct,
+          note: "" // Only variable not available after image classification. Default is empty string.
         });
       },
       () => {
@@ -503,7 +551,8 @@ async function classifyImage() {
           soil: lastResults.soilPct,
           plant: lastResults.plantPct,
           residue: lastResults.residuePct,
-          totalCover: lastResults.totalPct
+          totalCover: lastResults.totalPct,
+          note: ""
         });
       }
     );
@@ -517,7 +566,8 @@ async function classifyImage() {
       soil: lastResults.soilPct,
       plant: lastResults.plantPct,
       residue: lastResults.residuePct,
-      totalCover: lastResults.totalPct
+      totalCover: lastResults.totalPct,
+      note: ""
     });
   }
 }
@@ -528,10 +578,10 @@ const saveSummaryBtn = document.getElementById("saveSummaryBtn");
 saveSummaryBtn.addEventListener("click", async () => {
   const inputCanvasEl = document.getElementById("inputCanvas");
   const outputCanvasEl = document.getElementById("outputCanvas");
+  const noteInput = document.getElementById("noteInput").value.trim();
 
   // Text info
   const lines = [
-    `Stover summary:`,
     `File: ${document.getElementById("imageNameClassified").textContent.replace(/^File:\s*/, '')}`, // ensure "File:" prefix
     `Soil: ${lastResults.soilPct}%`,
     `Plant: ${lastResults.plantPct}%`,
@@ -585,10 +635,10 @@ saveSummaryBtn.addEventListener("click", async () => {
   y += lineHeight;
 
   // Draw legend lines
-  for (let i = 2; i <= 4; i++) {
+  for (let i = 1; i <= 3; i++) {
     const xBox = hPad;
     const yBox = y - 18; // align with text
-    ctx.fillStyle = legendColors[i-2].color;
+    ctx.fillStyle = legendColors[i-1].color;
     ctx.fillRect(xBox, yBox, 16, 16);
 
     ctx.fillStyle = "#000000";
@@ -597,11 +647,11 @@ saveSummaryBtn.addEventListener("click", async () => {
   }
 
   // Draw Total Cover line
-  ctx.fillText(lines[5], hPad, y);
+  ctx.fillText(lines[4], hPad, y);
   y += lineHeight;
 
   // Draw model line
-  ctx.fillText(`Model v${model_version}`, hPad, y);
+  ctx.fillText(`Note: ${noteInput}`, hPad, y);
 
 
   // Draw logo
@@ -671,6 +721,7 @@ function renderCards() {
       <p><b>Plant:</b> ${entry.plant}%</p>
       <p><b>Residue:</b> ${entry.residue}%</p>
       <p><b>Total Cover:</b> ${entry.totalCover}%</p>
+      <p><b>Note:</b> ${entry.note && entry.note.trim() !== "" ? entry.note : "None"}</p>
     `;
 
     // Add remove button logic
@@ -700,7 +751,7 @@ document.getElementById("downloadCsvBtn").addEventListener("click", () => {
   if (!data.length) return;
 
   // Use same headers as table
-  const headers = ["File","Timestamp","Latitude","Longitude","Soil","Plant","Residue","Total"];
+  const headers = ["File","Timestamp","Latitude","Longitude","Soil","Plant","Residue","Total Cover","Note"];
   const csvRows = [headers.join(",")];
 
   data.forEach(row => {
@@ -712,7 +763,8 @@ document.getElementById("downloadCsvBtn").addEventListener("click", () => {
       row.soil ?? "",
       row.plant ?? "",
       row.residue ?? "",
-      row.totalCover ?? ""
+      row.totalCover ?? "",
+      escapeForCSV(row.note ?? "")
     ];
     csvRows.push(values.join(","));
   });
@@ -736,10 +788,29 @@ function updateStorageCount() {
   countEl.textContent = `You have ${stoverData.length} entr${stoverData.length === 1 ? "y" : "ies"}`;
 }
 
-
+// Render cards on page load
 window.addEventListener("load", renderCards);
 
-// End code for data table
+
+
+// Code for optional note
+const noteInput = document.getElementById("noteInput");
+const charCount = document.getElementById("charCount");
+
+noteInput.addEventListener("input", () => {
+  charCount.textContent = `${noteInput.value.length} / 40`;
+});
+
+noteInput.addEventListener("change", () => {
+  const stoverData = JSON.parse(localStorage.getItem("stoverData") || "[]");
+  if (stoverData.length === 0) return;
+
+  stoverData[stoverData.length - 1].note = noteInput.value.trim() || "None";
+  localStorage.setItem("stoverData", JSON.stringify(stoverData));
+  renderCards();  // update card display
+});
+
+
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js')
