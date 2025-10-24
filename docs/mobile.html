@@ -9,6 +9,14 @@
 <title>Stover</title>
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+  const logo = new Image(); 
+  logo.src = "logo_and_text.png";
+  
+  const model_version = "20250924191812";
+  window.onload = () => document.getElementById("modelVersionText").textContent = `Running model v${model_version}`;
+</script>
+
 <style>
   :root {
     --slide-transition: 0.5s ease;
@@ -250,6 +258,10 @@ th {
         <li>🎯 Stover captures the center of the image</li>
         <li>📲 Offline use: Share/Menu → “Add to Home”</li>
       </ul>
+
+      <p id="modelVersionText" style="font-size: 0.8em; color: #666; margin-top: 15px;">
+        <!-- text will be set by JS -->
+      </p>
     </section>
 
     <section id="original">
@@ -263,7 +275,6 @@ th {
     <section id="classified">
       <h2>Classified Image</h2>
       <canvas id="outputCanvas"></canvas>
-      <p style="margin:0px; font-size:0.8em; font-style: italic;">Model: unet_20250924191812</p>
       <div id="info">
         <p id="imageNameClassified" class="image-name"></p>
         <div id="percentages">Upload an image to see results.</div>
@@ -308,6 +319,9 @@ th {
     <button id="btnClassified" onclick="goToSlide(2)" disabled>Classified</button>
     <button id="btnData" onclick="goToSlide(3)" disabled>Data</button>
   </nav>
+
+
+
 
 <script>
 const slides = document.getElementById("slides");
@@ -562,7 +576,24 @@ saveSummaryBtn.addEventListener("click", async () => {
   y += lineHeight;
 
   // Draw model line
-  ctx.fillText("Model: unet_20250924191812", hPad, y);
+  ctx.fillText(`Model v${model_version}`, hPad, y);
+
+
+  // Draw logo
+  const logoWidth = 80;
+  const logoHeight = 80;
+  const margin = 10;
+
+  // Only draw if logo is already loaded
+  if (logo.complete) {
+    ctx.drawImage(
+      logo,
+      summaryCanvas.width - logoWidth - margin,
+      summaryCanvas.height - logoHeight - margin,
+      logoWidth,
+      logoHeight
+    );
+  }
 
 
   // Trigger download as JPEG
@@ -575,7 +606,7 @@ saveSummaryBtn.addEventListener("click", async () => {
                     pad(now.getHours()) +
                     pad(now.getMinutes()) +
                     pad(now.getSeconds());
-  link.download = `stover_${timestamp}.jpg`;
+  link.download = `stover_${timestamp}_v${model_version}.jpg`;
   link.href = summaryCanvas.toDataURL("image/jpeg", 0.95);
   link.click();
 });
@@ -589,7 +620,6 @@ function saveImageData(entry) {
   data.push(entry);
   localStorage.setItem("stoverData", JSON.stringify(data));
 }
-
 
 function populateTable() {
   const tbody = document.querySelector("#historyTable tbody");
@@ -622,7 +652,6 @@ function populateTable() {
 }
 
 
-
 document.getElementById("downloadCSV").addEventListener("click", () => {
   const data = JSON.parse(localStorage.getItem("stoverData") || "[]");
   if (!data.length) return;
@@ -651,7 +680,7 @@ document.getElementById("downloadCSV").addEventListener("click", () => {
 
   const link = document.createElement("a");
   link.href = url;
-  link.download = `stover_history_${new Date().toISOString().replace(/[:.]/g,"")}.csv`;
+  link.download = `stover_data_${new Date().toISOString().replace(/[:.]/g,"")}_v${model_version}.csv`;  
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -665,9 +694,8 @@ document.getElementById("resetTable").addEventListener("click", () => {
   populateTable();
 });
 
-
-
 // End code for data table
+
 
 
 if ('serviceWorker' in navigator) {
