@@ -19,7 +19,7 @@
 
 <style>
   :root {
-    --slide-transition: 0.5s ease;
+    --slide-transition: 0.0s ease;
   }
 
   body {
@@ -206,42 +206,64 @@ input[type=file] {
  }
 
 
-/* Data storage code */
+/* Data */
+.card-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
 
-.table-wrapper {
-  display: block;            /* allow independent scrolling */
-  overflow-x: auto;          /* horizontal scroll for wide table */
-  overflow-y: auto;          /* vertical scroll if too tall */
-  -webkit-overflow-scrolling: touch;
-  max-height: 60vh;          /* vertical scroll limit */
+.data-card {
+  background-color: #fff;
   border: 1px solid #ccc;
-  border-radius: 6px;
-  margin-top: 10px;
-  touch-action: auto;        /* enable both directions */
-}
-
-table {
-  border-collapse: collapse;
-  width: max-content;       /* table can be wider than container */
-  min-width: 100%;          /* at least fill container */
-}
-
-th, td {
-  padding: 6px 10px;
-  border: 1px solid #aaa;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-size: 0.9em;
   text-align: left;
-  white-space: nowrap;      /* prevent text wrapping */
+
 }
 
-th {
-  background-color: #9051a3;
-  color: white;
-  position: sticky;
-  top: 0;
-  z-index: 2;
+.data-card p {
+  margin: 2px 0;
 }
 
+.data-card .card-header {
+  font-weight: bold;
+  color: #9051a3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
+.remove-card-btn {
+  background: none;
+  border: none;
+  color: #b00;
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 0;
+}
+
+.data-buttons button {
+  padding: 6px 12px;
+  font-size: 14px;
+  background-color: #ffffff;
+  color: #222;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: background-color 0.2s ease;
+}
+
+.data-buttons button:hover {
+  background-color: #f8f8f8;
+}
 
 
 </style>
@@ -291,37 +313,19 @@ th {
       <button id="saveSummaryBtn" class="small-button">Export</button>
     </section>
 
-    <section id="tableView">
-    <h2>Data</h2>
-    <p style="font-size:0.9em; color:#f50f0f; margin-bottom: 5px;">
-      Geographic coordinates correspond to the current location of the device at the time of classification.
-    </p>
-    <div class="table-wrapper">
-      <table id="dataTable">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>File</th>
-            <th>Timestamp</th>
-            <th>Latitude</th>
-            <th>Longitude</th>
-            <th>Soil</th>
-            <th>Plant</th>
-            <th>Residue</th>
-            <th>Total Cover</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- dynamically generated rows -->
-        </tbody>
-      </table>
-    </div>
+    <section id="dataSection">
+      <h2>Stored Data</h2>
+      <p id="geoNote" style="font-size:0.9em; color:#666; margin-bottom: 2px;">
+        Geographic coordinates correspond to the current device location.
+      </p>
 
-    <div style="margin-top:10px;">
-      <button id="downloadCSV">Download CSV</button>
-      <button id="resetTable">Reset</button>
-    </div>
-  </section>
+      <div id="cardContainer" class="card-container"></div>
+
+      <div class="data-buttons">
+        <button id="downloadCsvBtn">⬇️ Download CSV</button>
+        <button id="clearStorageBtn">🗑️ Clear All</button>
+      </div>
+    </section>
   </div>
 
   <nav>
@@ -330,7 +334,6 @@ th {
     <button id="btnClassified" onclick="goToSlide(2)" disabled>Classified</button>
     <button id="btnData" onclick="goToSlide(3)" disabled>Data</button>
   </nav>
-
 
 
 
@@ -345,6 +348,15 @@ const buttons = {
   classified: document.getElementById("btnClassified"),
   data: document.getElementById("btnData"),
 };
+
+
+// Check if there is any data in localStorage
+const storedData = localStorage.getItem("stoverData");
+if (storedData && JSON.parse(storedData).length > 0) {
+  buttons.data.disabled = false;  // enable Data button
+} else {
+  buttons.data.disabled = true;   // keep it disabled
+}
 
 let session, lastResults = {};
 
@@ -366,7 +378,7 @@ function goToSlide(n) {
 
   // Populate table if user goes to Data
   if (n === 3) {  // replace 3 with your Table View slide index
-    populateTable();
+    renderCards();
   }
 }
 
@@ -539,7 +551,8 @@ saveSummaryBtn.addEventListener("click", async () => {
   const summaryCanvas = document.createElement("canvas");
   summaryCanvas.width = width;
   summaryCanvas.height = height;
-  const ctx = summaryCanvas.getContext("2d");
+  const ctx = summaryCanvas.getContext("2d", { willReadFrequently: true });
+
 
   // Fill background white
   ctx.fillStyle = "#ffffff";
@@ -624,7 +637,7 @@ saveSummaryBtn.addEventListener("click", async () => {
 
 
 
-// Beginning of code for data table
+// Beginning of code for data cards
 
 function saveImageData(entry) {
   const data = JSON.parse(localStorage.getItem("stoverData") || "[]");
@@ -632,38 +645,51 @@ function saveImageData(entry) {
   localStorage.setItem("stoverData", JSON.stringify(data));
 }
 
-function populateTable() {
-  const tbody = document.querySelector("#dataTable tbody");
-  tbody.innerHTML = "";  // clear previous rows
+function renderCards() {
+  const container = document.getElementById("cardContainer");
+  container.innerHTML = "";
 
   const data = JSON.parse(localStorage.getItem("stoverData") || "[]");
 
-  if (!data.length) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="9">No data available</td>`;
-    tbody.appendChild(tr);
-    return;
-  }
+  data.forEach((entry, index) => {
+    const card = document.createElement("div");
+    card.className = "data-card";
 
-  data.forEach((item, index) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${item.fileName ?? ""}</td>
-      <td>${item.timestamp ?? ""}</td>
-      <td>${item.latitude ?? ""}</td>
-      <td>${item.longitude ?? ""}</td>
-      <td>${item.soil ?? ""}</td>
-      <td>${item.plant ?? ""}</td>
-      <td>${item.residue ?? ""}</td>
-      <td>${item.totalCover ?? ""}</td>
+    card.innerHTML = `
+      <div class="card-header">
+        <span>Image #${index + 1}</span>
+        <button class="remove-card-btn" title="Remove entry">×</button>
+      </div>
+      <p><b>File:</b> ${entry.fileName}</p>
+      <p><b>Timestamp:</b> ${entry.timestamp}</p>
+      <p><b>Latitude:</b> ${entry.latitude ?? "—"}</p>
+      <p><b>Longitude:</b> ${entry.longitude ?? "—"}</p>
+      <p><b>Soil:</b> ${entry.soil}%</p>
+      <p><b>Plant:</b> ${entry.plant}%</p>
+      <p><b>Residue:</b> ${entry.residue}%</p>
+      <p><b>Total Cover:</b> ${entry.totalCover}%</p>
     `;
-    tbody.appendChild(tr);
+
+    // Add remove button logic
+    card.querySelector(".remove-card-btn").addEventListener("click", () => {
+      data.splice(index, 1);
+      localStorage.setItem("stoverData", JSON.stringify(data));
+      renderCards();
+    });
+
+    container.appendChild(card);
   });
 }
 
+document.getElementById("clearStorageBtn").addEventListener("click", () => {
+  if (confirm("Are you sure you want to remove all saved data?")) {
+    localStorage.removeItem("stoverData");
+    renderCards();
+  }
+});
 
-document.getElementById("downloadCSV").addEventListener("click", () => {
+
+document.getElementById("downloadCsvBtn").addEventListener("click", () => {
   const data = JSON.parse(localStorage.getItem("stoverData") || "[]");
   if (!data.length) return;
 
@@ -699,11 +725,7 @@ document.getElementById("downloadCSV").addEventListener("click", () => {
 });
 
 
-
-document.getElementById("resetTable").addEventListener("click", () => {
-  localStorage.removeItem("stoverData");
-  populateTable();
-});
+window.addEventListener("load", renderCards);
 
 // End code for data table
 
