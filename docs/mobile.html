@@ -335,11 +335,11 @@ input[type=file] {
         <label for="noteInput">Add short note (optional):</label>
         <textarea
           id="noteInput"
-          maxlength="30"
+          maxlength="40"
           rows="2"
           placeholder="e.g., field name, plot number"
         ></textarea>
-        <div id="charCount">0 / 30</div>
+        <div id="charCount">0 / 40</div>
       </div>
 
     </section>
@@ -798,7 +798,7 @@ const noteInput = document.getElementById("noteInput");
 const charCount = document.getElementById("charCount");
 
 noteInput.addEventListener("input", () => {
-  charCount.textContent = `${noteInput.value.length} / 30`;
+  charCount.textContent = `${noteInput.value.length} / 40`;
 });
 
 noteInput.addEventListener("change", () => {
