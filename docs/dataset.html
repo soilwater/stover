@@ -81,6 +81,10 @@
   <button id="nextBtn">Next</button>
 </div>
 
+<div id="loading" style="display:none; text-align:center; padding:20px;">
+  Loading images...
+</div>
+
 <table id="imageTable">
   <thead>
     <tr>
@@ -145,7 +149,8 @@ function getImageNumber(index) {
 async function loadPage(page) {
   if (isLoading) return; // Prevent concurrent loads
   isLoading = true;
-  
+  document.getElementById("loading").style.display = "block";
+
   const tbody = document.querySelector("#imageTable tbody");
   tbody.innerHTML = "";
   const start = page * perPage;
@@ -178,6 +183,7 @@ async function loadPage(page) {
   
   // Append all rows at once
   rows.forEach(row => tbody.appendChild(row));
+  document.getElementById("loading").style.display = "none";
   isLoading = false;
 }
 
