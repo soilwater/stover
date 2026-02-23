@@ -98,6 +98,7 @@ const baseMask = "https://raw.githubusercontent.com/soilwater/stover/main/datase
 const totalImages = 1800;
 const perPage = 100;
 let currentPage = 0;
+let isLoading = false; // loading flag
 
 // Converts grayscale mask to colored mask (brown=soil, green=plant, yellow=residue)
 async function recolorMask(url) {
@@ -140,7 +141,11 @@ function getImageNumber(index) {
   return index.toString().padStart(4, '0');
 }
 
+
 async function loadPage(page) {
+  if (isLoading) return; // Prevent concurrent loads
+  isLoading = true;
+  
   const tbody = document.querySelector("#imageTable tbody");
   tbody.innerHTML = "";
   const start = page * perPage;
@@ -148,6 +153,9 @@ async function loadPage(page) {
   document.getElementById("pageInfo").textContent = 
     `Showing ${start+1}-${end} of ${totalImages}`;
 
+  // Collect all rows first, then append at once
+  const rows = [];
+  
   for (let i = start + 1; i <= end; i++) {
     const imageNumber = getImageNumber(i);
     const rgbUrl = `${baseRGB}image_${imageNumber}.jpg`;
@@ -165,8 +173,12 @@ async function loadPage(page) {
       <td><img src="${rgbUrl}" alt="RGB"></td>
       <td><img src="${maskResult?.url || maskUrl}" alt="Mask"></td>
     `;
-    tbody.appendChild(row);
+    rows.push(row);
   }
+  
+  // Append all rows at once
+  rows.forEach(row => tbody.appendChild(row));
+  isLoading = false;
 }
 
 document.getElementById("nextBtn").addEventListener("click", () => {
