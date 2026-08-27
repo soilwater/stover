@@ -1,83 +1,543 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stover</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-  <style>
-    body {
-      background-color: #f5f5f5;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      margin: 0;
-    }
-    .hero {
-      margin-bottom: 2rem;
-    }
-    img {
-      max-width: 75%;
-      height: auto;
-      margin-bottom: 1.5rem;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="mobile-web-app-capable" content="yes">
+<title>Stover</title>
+<meta name="description" content="Stover — classify crop residue, green canopy, and bare soil cover from downward-facing images with a U-Net, right in your browser." />
 
-    .title{
-        font-size: 6rem !important;
-    }
+<!-- PWA wiring -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0f110e" />
+<link rel="icon" type="image/svg+xml" href="icons/logo.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Stover" />
 
-  .button-row {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap; /* ensures it still looks good on small screens */
-    margin-top: 15px;
-  }
-
-  .button-row .button {
-    font-size: 0.9rem;
-    padding: 10px 15px;
-    white-space: nowrap;
-  }
-
-  </style>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <img src="logo_and_text.png" alt="Stover logo" class="logo" width="300 px", height="auto">
-  <section class="hero">
 
-    <p class="subtitle is-size-4 has-text-grey">
-      AI tool for soil, plant, and crop residue classification.
-    </p>
-  </section>
-  <img src="landing_img.png" width="600 px", height="auto" alt="Stover results illustration">
-  </br>
+  <!-- ── Menu bar ──────────────── -->
+  <div class="menubar">
+    <div class="menubar-title">
+      <img src="icons/logo.svg" alt="" class="menubar-logo" width="25" height="25" />
+      Stover
+    </div>
+    <div class="menu-item" id="help-menu-btn" tabindex="0" aria-haspopup="true">
+      Help <span class="caret">▾</span>
+      <div class="menu-dropdown" id="help-menu-dropdown">
+        <button type="button" id="menu-photoguide">Collecting images</button>
+        <a href="dataset.html" target="_blank" rel="noopener" id="menu-dataset">Dataset explorer</a>
+        <button type="button" id="menu-about">About</button>
+        <button type="button" id="menu-guide">User Guide</button>
+        <button type="button" id="menu-license">License</button>
+      </div>
+    </div>
 
-  <div class="button-row">
-    <a href="https://github.com/soilwater/stover/raw/main/docs/stover_v2_setup.exe" class="button download-link" download target="_blank">
-      💻 Desktop (Win)
-    </a>
-    <!--
-    <a href="https://soilwater.github.io/stover/mobile" class="button" target="_blank">
-      🌐 Web App
-    </a>
-    -->
-
-    <a href="https://github.com/soilwater/stover" class="button" target="_blank">
-      📁 GitHub Repo
-    </a>
-
-    <a href="https://soilwater.github.io/stover/dataset.html" class="button" target="_blank">
-      🖼️ Dataset
-    </a>
-
-    <a href="https://github.com/soilwater/stover/blob/main/docs/Stover%20Desktop%20App%20User%20Guide%20v1.0.pdf" class="button" target="_blank">
-      📘 User Guide (PDF)
-    </a>
+    <div class="menubar-right">
+      <button type="button" class="theme-toggle" id="theme-toggle" title="Switch to dark theme">☾</button>
+      <button type="button" class="install-btn" id="install-btn" hidden>Install App</button>
+    </div>
   </div>
 
+  <!-- ── Main two-pane layout ─────────────────────────────────────────── -->
+  <div class="app">
+
+    <!-- Left pane: image display -->
+    <section class="left-pane" id="left-pane">
+      <div class="image-container" id="image-container">
+        <canvas id="display-canvas"></canvas>
+        <p class="empty-state" id="empty-state">Drop your downward-facing field photos here<br />— or use <strong>Load images</strong> on the right to begin.</p>
+        <div class="drag-overlay" id="drag-overlay">Drop images to load</div>
+      </div>
+    </section>
+
+    <!-- Right pane: sidebar controls — laid out top-to-bottom as the flow -->
+    <aside class="right-pane">
+      <div class="sidebar" id="sidebar">
+
+        <!-- ── Load ─────────────────────────────────────────────── -->
+        <section class="step">
+          <header class="step-head">
+            <span class="step-dot"></span>
+            <h2 class="step-title">Load images</h2>
+          </header>
+
+          <button class="btn load-btn" id="load-images-btn">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            Load images
+          </button>
+          <p class="hint">PNG or JPG · or drag files onto the photo area</p>
+          <p class="loaded-count" id="load-label">No images loaded</p>
+          <p class="step-sub" id="model-status">Loading classification model…</p>
+        </section>
+
+        <!-- ── Adjust & inspect ─────────────────────────────────── -->
+        <section class="step">
+          <header class="step-head">
+            <span class="step-dot"></span>
+            <h2 class="step-title">Inspect</h2>
+          </header>
+
+          <div class="readout tri-readout" id="tri-readout" title="Values are percent ground cover. The ± is the model's typical 95% range (±1.96 SD of per-image error on the test set).">
+            <div class="tri-stat">
+              <div class="tri-head">
+                <span class="tri-dot" style="background:#ffd400"></span>
+                <span class="tri-caption">Residue</span>
+              </div>
+              <span class="tri-value" id="residue-cover-label">–</span>
+              <span class="tri-ci" id="residue-ci"></span>
+            </div>
+            <div class="tri-stat">
+              <div class="tri-head">
+                <span class="tri-dot" style="background:#00c800"></span>
+                <span class="tri-caption">Canopy</span>
+              </div>
+              <span class="tri-value" id="canopy-cover-label">–</span>
+              <span class="tri-ci" id="canopy-ci"></span>
+            </div>
+            <div class="tri-stat">
+              <div class="tri-head">
+                <span class="tri-dot" style="background:#a52a2a"></span>
+                <span class="tri-caption">Soil</span>
+              </div>
+              <span class="tri-value" id="soil-cover-label">–</span>
+              <span class="tri-ci" id="soil-ci"></span>
+            </div>
+          </div>
+
+          <div class="readout-nav standalone-nav">
+            <button class="icon-btn" id="prev-btn" disabled aria-label="Previous image">‹</button>
+            <span class="readout-counter" id="image-counter-label">–</span>
+            <button class="icon-btn" id="next-btn" disabled aria-label="Next image">›</button>
+          </div>
+
+          <div class="info-block">
+            <p class="info-line" id="image-name-label">Filename:</p>
+            <p class="info-line" id="timestamp-label">Timestamp:</p>
+            <p class="info-line" id="latitude-label">Latitude:</p>
+            <p class="info-line" id="longitude-label">Longitude:</p>
+            <p class="info-line" id="device-label">Device:</p>
+            <p class="info-line">
+              <span id="size-label">Image size:</span><span id="mpx-label"></span>
+            </p>
+          </div>
+
+          <div class="field">
+            <span class="field-label">Overlay</span>
+            <div class="seg" id="overlay-mode-row">
+              <label class="seg-opt">
+                <input type="radio" name="overlay-mode" value="classes" checked/>
+                <span>Class colors</span>
+              </label>
+              <label class="seg-opt">
+                <input type="radio" name="overlay-mode" value="original"/>
+                <span>Original</span>
+              </label>
+              <label class="seg-opt"><!-- [uncertainty] -->
+                <input type="radio" name="overlay-mode" value="uncertainty"/>
+                <span>Uncertainty</span>
+              </label>
+            </div>
+            <div class="legend" id="class-legend">
+              <span class="legend-item"><span class="tri-dot" style="background:#ffd400"></span>Residue</span>
+              <span class="legend-item"><span class="tri-dot" style="background:#00c800"></span>Canopy</span>
+              <span class="legend-item"><span class="tri-dot" style="background:#a52a2a"></span>Soil</span>
+            </div>
+            <!-- [uncertainty] gradient legend, shown only in Uncertainty mode -->
+            <div class="uncert-legend" id="uncert-legend" hidden>
+              <span>Confident</span>
+              <span class="uncert-bar"></span>
+              <span>Uncertain</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <span class="field-label" id="alpha-label">Overlay opacity: 30</span>
+            <input type="range" id="alpha-slider" min="0" max="100" step="1" value="30" />
+            <div class="scale-ends"><span>photo</span><span>mask</span></div>
+          </div>
+
+        </section>
+
+        <!-- ── Run & download ───────────────────────────────────── -->
+        <section class="step">
+          <header class="step-head">
+            <span class="step-dot"></span>
+            <h2 class="step-title">Run &amp; download</h2>
+          </header>
+
+          <div class="field">
+            <span class="field-label">Outputs to save</span>
+            <div class="outputs" id="outputs-row">
+              <label class="check"><input type="checkbox" id="output-table" checked /><span>Table (CSV)</span></label>
+              <label class="check"><input type="checkbox" id="output-pdf" /><span>PDF report</span></label>
+              <label class="check"><input type="checkbox" id="output-blended" /><span>Blended JPEGs</span></label>
+              <label class="check"><input type="checkbox" id="output-mask" /><span>Class masks (PNG)</span></label>
+              <label class="check"><input type="checkbox" id="output-uncert" /><span>Uncertainty maps (PNG)</span></label><!-- [uncertainty] -->
+            </div>
+          </div>
+
+          <div class="field" id="report-fields" hidden>
+            <span class="field-label">Report details (optional)</span>
+            <input type="text" id="project-name" class="text-input" placeholder="Project or field name" />
+            <textarea id="observations" class="text-input" rows="2" placeholder="Observations / notes"></textarea>
+          </div>
+
+          <button class="btn primary run-btn" id="process-btn" disabled>Process batch</button>
+
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <p class="progress-label" id="progress-label"></p>
+        </section>
+
+      </div>
+    </aside>
+  </div>
+
+  <input type="file" id="file-input" accept="image/*" multiple hidden />
+
+  <!-- ── Results table — appears after batch processing ──────────────── -->
+  <section class="results-section" id="results-section" hidden>
+    <div class="results-header">
+      <div class="results-title">
+        Results <span class="results-badge" id="results-count">0</span>
+      </div>
+      <div class="results-actions">
+        <button class="btn dl-btn" id="dl-pdf-btn" hidden>
+          <svg width="12" height="12" viewBox="0 0 13 13" fill="none"><rect x="2" y="1" width="9" height="11" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M4.2 8.5h.9M6.1 8.5h.9M8 8.5h.9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+          PDF
+        </button>
+        <button class="btn dl-btn" id="dl-csv-btn" hidden>
+          <svg width="12" height="12" viewBox="0 0 13 13" fill="none"><rect x="2" y="1" width="9" height="11" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M4 5h5M4 7h5M4 9h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+          CSV
+        </button>
+        <button class="btn dl-btn" id="dl-zip-btn" hidden>
+          <svg width="12" height="12" viewBox="0 0 13 13" fill="none"><path d="M6.5 2v6M4.5 6.5l2 2 2-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11h9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          ZIP
+        </button>
+        <button class="btn danger-outline" id="clear-btn">
+          <svg width="12" height="12" viewBox="0 0 13 13" fill="none"><path d="M2 3h9M5 3V2h3v1M10 3l-.7 8H3.7L3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Clear
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Original</th>
+            <th>Mask</th>
+            <th>Residue %</th>
+            <th>Canopy %</th>
+            <th>Soil %</th>
+            <th>Filename</th>
+            <th class="hide-sm">Timestamp</th>
+            <th class="hide-sm">Lat</th>
+            <th class="hide-sm">Lon</th>
+          </tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Lightbox ─────────────────────────────────────────────────────── -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightbox-close">✕</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="Zoomed image" />
+  </div>
+
+  <!-- ── About modal ─────────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="about-modal">
+    <div class="modal-box">
+      <h2>About <button class="close-btn" data-close-modal>✕</button></h2>
+      <p class="version-line">Stover version: <span id="about-version">1.0.0</span></p>
+      <p>Stover classifies the fraction of ground covered by crop residue, green canopy, and bare soil from downward-facing images. It uses a U-Net convolutional neural network trained from scratch on a large, manually segmented dataset of in-situ field images. The model runs entirely in your browser.</p>
+      <h4>Reference</h4>
+      <p>Patrignani, A., et&nbsp;al. Pixel-level classification of crop residue, green canopy, and bare soil cover from in-situ RGB images using a U-Net. <em>Agronomy Journal</em> (in review).</p>
+      <h4>Developers</h4>
+      <p>Andres Patrignani — Department of Agronomy — Kansas State University</p>
+      <h4>Contact</h4>
+      <p>For questions, bug reports, feature requests, or potential collaborations, please reach out at:<br />
+      <a href="mailto:andrespatrignani@ksu.edu"><span>andrespatrignani@ksu.edu</span></a></p>
+      <div class="logo-row" id="about-logo-row">
+        <img src="assets/kstate_logo.jpg" alt="Kansas State University" onerror="this.style.display='none'" />
+      </div>
+      <h4>Privacy</h4>
+      <p>This is a client-side web app: your images are processed entirely on your own device by a neural network running in your browser. Nothing is uploaded anywhere.</p>
+    </div>
+  </div>
+
+  <!-- ── Photo Guide modal (field photo collection) ──────────────────── -->
+  <div class="modal-overlay" id="photoguide-modal">
+    <div class="modal-box wide">
+      <h2>Collecting images <button class="close-btn" data-close-modal>✕</button></h2>
+      <p class="pg-lede">Stover reads residue, canopy, and soil from a straight-down photo of about one square meter of ground. A few habits when you shoot make the classification far more reliable.</p>
+      <div class="pg-steps">
+
+        <div class="pg-step">
+          <div class="pg-num">1</div>
+          <div class="pg-body">
+            <h3>Shoot from waist height, leaning forward</h3>
+            <p>Bend forward slightly from the hips and hold the camera at about waist height, lens pointing straight down at the ground. Don't go too high, otherwise the frame covers too much ground and residue becomes too small to resolve.</p>
+            <figure class="pg-hero">
+              <img src="assets/guide/step1_pose.jpg" alt="A field technician bending forward from the hips, holding a tablet at about waist height and aiming it straight down at a one-square-meter patch of ground." loading="lazy" />
+              <figcaption class="pg-cap good"><span class="pg-badge good">✓</span>Lean slightly forward and take picture at waist height (≈1 m or 3 ft)</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="pg-step">
+          <div class="pg-num">2</div>
+          <div class="pg-body">
+            <h3>Point the camera straight down</h3>
+            <p>Keep the lens parallel to the ground for a true top-down (nadir) view. A tilted, oblique angle distorts the cover fractions and stretches residue toward the far edge of the frame.</p>
+            <div class="pg-pair">
+              <figure class="pg-card good">
+                <img src="assets/guide/step2_nadir.jpg" alt="A straight-down photo of crop residue lying on dark soil, sharp and evenly framed." loading="lazy" />
+                <figcaption><span class="pg-badge good">✓</span>Lens parallel to ground</figcaption>
+              </figure>
+              <figure class="pg-card bad">
+                <img src="assets/guide/step2_tilted.jpg" alt="A field photo taken at a forward tilt, so the ground recedes with perspective instead of being seen straight down." loading="lazy" />
+                <figcaption><span class="pg-badge bad">✕</span>Tilted / oblique angle</figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+
+        <div class="pg-step">
+          <div class="pg-num">3</div>
+          <div class="pg-body">
+            <h3>Keep everything but the ground out of frame</h3>
+            <p>Frame only the soil surface. Shoes, hands, flags, tools, or soil probes get misread and skew the numbers. Your own boots are the most common intruder.</p>
+          </div>
+        </div>
+
+        <div class="pg-step">
+          <div class="pg-num">4</div>
+          <div class="pg-body">
+            <h3>Use even daylight; keep your shadow out</h3>
+            <p>Shoot mid-day with good illumination or under overcast skies. Avoid the long shadows of early morning or late evening, and stand so your own shadow doesn't fall across the frame.</p>
+          </div>
+        </div>
+
+      </div>
+      <p class="pg-foot"><strong>One more thing:</strong> Stover can't see residue hidden under a standing crop canopy.</p>
+    </div>
+  </div>
+
+  <!-- ── User Guide modal ────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="guide-modal">
+    <div class="modal-box wide">
+      <h2>User Guide <button class="close-btn" data-close-modal>✕</button></h2>
+      <div id="guide-content">
+
+        <p class="guide-xref">New to Stover? See <strong>Collecting images</strong> in the Help menu for how to take photos the model reads well.</p>
+
+        <h3>How classification works</h3>
+        <p>Each image is resized to 512 × 512 pixels and passed through a U-Net that assigns every pixel to one of three classes — crop residue, green canopy, or bare soil. The reported cover percentages are the fraction of pixels in each class. Classification runs at 512 × 512 regardless of the input image size, so very large photos and small phone photos are treated consistently. The first classification after the app loads may take a moment while the model initializes; subsequent images are faster.</p>
+
+        <h3>Sidebar widgets (top to bottom)</h3>
+
+        <p><strong>Load Images</strong><br />
+        Press to select one or more images in PNG, JPG, or JPEG format. Multiple files can be selected at once. You can also drag and drop image files directly onto the image pane on the left. The label directly below shows the number of images loaded, and the line under it shows the model status.</p>
+
+        <p><strong>Cover readout (Residue / Canopy / Soil)</strong><br />
+        Shows the percentage of the current image classified as crop residue, green canopy, and bare soil. The three values sum to 100%.</p>
+
+        <p><strong>Inspect images (Previous / Next)</strong><br />
+        Navigate through the loaded image list. The counter shows your position, and Previous / Next wrap around at the ends.</p>
+
+        <p><strong>Image information</strong><br />
+        Shows the current image's metadata: file name, capture timestamp, GPS coordinates, capture device, and the original image dimensions followed by the megapixel count in parentheses. Timestamp and GPS fields are read from the EXIF metadata embedded in the file and may show "N/A" for processed or PNG-format images that have lost their original EXIF.</p>
+
+        <p><strong>Overlay</strong><br />
+        "Class colors" paints each pixel with its predicted class — yellow for residue, green for canopy, and maroon for soil, matching the color scheme used in the associated publication. "Original" shows the source photo unchanged, which is useful for comparing the raw image against the classification using the opacity slider. "Uncertainty" shades each pixel by how confident the model is in its prediction — brighter areas mark lower-confidence pixels, which usually fall along residue and leaf edges, so you can see where the classification is least sure. The uncertainty map can also be saved for each image under <em>Select outputs</em>.</p>
+
+        <p><strong>Overlay opacity</strong><br />
+        Controls how the classification mask is blended onto the displayed image. A value of 0 shows only the original photo; 100 shows only the mask. Intermediate values are useful for visually verifying that the classification followed leaf and residue edges correctly.</p>
+
+        <p><strong>Select outputs (Table / Blended / Class masks)</strong><br />
+        Selects which files the batch will produce. "Table" writes a CSV with one row per image containing the filename, the residue / canopy / soil cover percentages, GPS coordinates, timestamp, device, and original image dimensions. "Blended" writes a JPEG per image showing the source photo overlaid with the classification mask at the current opacity. "Class masks" writes a PNG per image with the three-color class map. Blended and Class-mask outputs are packaged together into a single ZIP archive. At least one option must be selected.</p>
+
+        <p><strong>Process batch</strong><br />
+        Runs the U-Net on every loaded image and downloads the selected outputs through your browser. The progress bar tracks completion. Processing time depends on the number of images and your device; each image is classified at 512 × 512.</p>
+
+        <h3>Display and saved files</h3>
+        <p>The image shown in the main window is a preview capped at about 800 pixels on the longest side, with the classification mask overlaid. Classification is always computed at 512 × 512, and the reported cover percentages come from that resolution. Class-mask PNGs are saved at 512 × 512; blended JPEGs are saved at the preview resolution.</p>
+
+        <h3>About this web version</h3>
+        <p>Everything — image decoding, neural-network inference, and file packaging — runs locally on your device using onnxruntime-web. No images are ever uploaded anywhere. Because it's a Progressive Web App, you can install it (see "Install App" in the menu bar, where supported) for an offline, app-like experience. The model file is roughly 70 MB and is cached on first load.</p>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── License modal ───────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="license-modal">
+    <div class="modal-box wide">
+      <h2>License <button class="close-btn" data-close-modal>✕</button></h2>
+      <pre id="license-text">
+Stover
+Copyright (c) 2026 Patrignani
+Required Notice: Copyright 2026 Patrignani
+Licensed under the PolyForm Noncommercial License 1.0.0.
+The full text of the license follows below.
+
+------------------------------------------------------------------
+
+
+PolyForm Noncommercial License 1.0.0
+
+&lt;https://polyformproject.org/licenses/noncommercial/1.0.0&gt;
+
+# Acceptance
+In order to get any license under these terms, you must agree
+to them as both strict obligations and conditions to all
+your licenses.
+
+# Copyright License
+The licensor grants you a copyright license for the
+software to do everything you might do with the software
+that would otherwise infringe the licensor's copyright
+in it for any permitted purpose.  However, you may
+only distribute the software according to [Distribution
+License](#distribution-license) and make changes or new works
+based on the software according to [Changes and New Works
+License](#changes-and-new-works-license).
+
+# Distribution License
+The licensor grants you an additional copyright license
+to distribute copies of the software.  Your license
+to distribute covers distributing the software with
+changes and new works permitted by [Changes and New Works
+License](#changes-and-new-works-license).
+
+# Notices
+You must ensure that anyone who gets a copy of any part of
+the software from you also gets a copy of these terms or the
+URL for them above, as well as copies of any plain-text lines
+beginning with `Required Notice:` that the licensor provided
+with the software.  For example:
+
+&gt; Required Notice: Copyright Yoyodyne, Inc. (http://example.com)
+
+# Changes and New Works License
+The licensor grants you an additional copyright license to
+make changes and new works based on the software for any
+permitted purpose.
+
+# Patent License
+The licensor grants you a patent license for the software that
+covers patent claims the licensor can license, or becomes able
+to license, that you would infringe by using the software.
+
+# Noncommercial Purposes
+Any noncommercial purpose is a permitted purpose.
+
+# Personal Uses
+Personal use for research, experiment, and testing for
+the benefit of public knowledge, personal study, private
+entertainment, hobby projects, amateur pursuits, or religious
+observance, without any anticipated commercial application,
+is use for a permitted purpose.
+
+# Noncommercial Organizations
+Use by any charitable organization, educational institution,
+public research organization, public safety or health
+organization, environmental protection organization,
+or government institution is use for a permitted purpose
+regardless of the source of funding or obligations resulting
+from the funding.
+
+# Fair Use
+You may have "fair use" rights for the software under the
+law. These terms do not limit them.
+
+# No Other Rights
+These terms do not allow you to sublicense or transfer any of
+your licenses to anyone else, or prevent the licensor from
+granting licenses to anyone else.  These terms do not imply
+any other licenses.
+
+# Patent Defense
+If you make any written claim that the software infringes or
+contributes to infringement of any patent, your patent license
+for the software granted under these terms ends immediately. If
+your company makes such a claim, your patent license ends
+immediately for work on behalf of your company.
+
+# Violations
+The first time you are notified in writing that you have
+violated any of these terms, or done anything with the software
+not covered by your licenses, your licenses can nonetheless
+continue if you come into full compliance with these terms,
+and take practical steps to correct past violations, within
+32 days of receiving notice.  Otherwise, all your licenses
+end immediately.
+
+# No Liability
+***As far as the law allows, the software comes as is, without
+any warranty or condition, and the licensor will not be liable
+to you for any damages arising out of these terms or the use
+or nature of the software, under any kind of legal claim.***
+
+# Definitions
+The **licensor** is the individual or entity offering these
+terms, and the **software** is the software the licensor makes
+available under these terms.
+
+**You** refers to the individual or entity agreeing to these
+terms.
+
+**Your company** is any legal entity, sole proprietorship,
+or other kind of organization that you work for, plus all
+organizations that have control over, are under the control of,
+or are under common control with that organization.  **Control**
+means ownership of substantially all the assets of an entity,
+or the power to direct its management and policies by vote,
+contract, or otherwise.  Control can be direct or indirect.
+
+**Your licenses** are all the licenses granted to you for the
+software under these terms.
+
+**Use** means anything you do with the software requiring one
+of your licenses.
+      </pre>
+    </div>
+  </div>
+
+  <!-- ── GPU acceleration tip (shown when a GPU exists but WebGPU can't use it) ── -->
+  <div class="modal-overlay" id="gpu-modal">
+    <div class="modal-box">
+      <h2>Running in slower mode <button class="close-btn" data-close-modal>✕</button></h2>
+      <p>Your browser supports GPU acceleration, but it couldn't access the GPU on this computer — so classification is running on the CPU. It still works and gives identical results, just slower (a few seconds per image instead of a fraction of a second).</p>
+      <h4>To speed it up, try one of these</h4>
+      <p><strong>1. Turn on hardware acceleration.</strong> In Chrome or Edge: Settings → System → “Use graphics acceleration when available”, then relaunch the browser.</p>
+      <p><strong>2. Update your graphics driver and browser.</strong> GPU acceleration is disabled on some older graphics drivers; updating the driver and using the latest Chrome or Edge usually fixes it.</p>
+      <p><strong>3. Try a different browser.</strong> Recent versions of Chrome and Microsoft Edge use the GPU out of the box on most computers.</p>
+      <p class="step-sub">Note: if you are connecting through Remote Desktop, the GPU is usually unavailable — run the app directly on the computer instead.</p>
+      <label class="check"><input type="checkbox" id="gpu-tip-dismiss" /><span>Don’t show this again on this browser</span></label>
+    </div>
+  </div>
+
+  <!-- ── Lightweight toast for non-blocking errors ────────────────────── -->
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- ── Vendored libraries (per-file licenses preserved in vendor/) ──── -->
+  <script src="vendor/jszip.min.js"></script>
+  <script src="vendor/FileSaver.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <script src="vendor/exif.js"></script>
+  <script src="vendor/ort.webgpu.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

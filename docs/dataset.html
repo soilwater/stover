@@ -3,205 +3,280 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stover Dataset Viewer</title>
+<title>Stover Dataset Explorer</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background: #f4f4f4;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  :root{
+    --bg:#f3f4f1; --card:#ffffff; --text:#1a1c19; --muted:#6b7166;
+    --border:#e3e5e0; --bar:#0f110e; --bar-text:#f3f4f1; --accent:#75ab50;
+    --soil:#a52a2a; --plant:#00c800; --residue:#e8b800;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
   }
-  h1 {
-    text-align: center;
-    margin-bottom: 10px;
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#121410; --card:#1c1f19; --text:#e8eae4; --muted:#9aa093;
+      --border:#2b2f26; --bar:#0b0d0a; --bar-text:#e8eae4;
+      --shadow:0 1px 3px rgba(0,0,0,.4);
+    }
   }
-  .controls {
-    text-align: center;
-    margin: 10px 0 20px 0;
-  }
-  table {
-    width: 85%;
-    max-width: 1200px;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  th {
-    background: #333;
-    color: white;
-    padding: 10px;
-    font-size: 1rem;
-  }
-  td {
-    vertical-align: top;
-    padding: 8px;
-    border: 1px solid #ccc;
-    text-align: center;
-  }
-  img {
-    max-width: 256px;
-    height: auto;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-  .stats {
-    text-align: left;
-    font-size: 0.9em;
-  }
-  button {
-    padding: 5px 12px;
-    margin: 0 8px;
-    font-size: 1em;
-    border-radius: 5px;
-    border: none;
-    background-color: #333;
-    color: white;
-    cursor: pointer;
-  }
-  button:hover {
-    background-color: #555;
-  }
-  #pageInfo {
-    font-weight: bold;
-    margin: 0 10px;
-  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg);color:var(--text);}
+
+  /* ── Top bar ─────────────────────────────────────────── */
+  .bar{position:sticky;top:0;z-index:20;background:var(--bar);color:var(--bar-text);
+    display:flex;align-items:center;gap:14px;padding:10px 16px;flex-wrap:wrap;
+    box-shadow:0 1px 6px rgba(0,0,0,.25);}
+  .bar .brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;}
+  .bar .brand img{width:22px;height:22px;border-radius:4px;}
+  .bar a.home{color:var(--bar-text);opacity:.75;text-decoration:none;font-size:13px;}
+  .bar a.home:hover{opacity:1;text-decoration:underline;}
+  .spacer{flex:1 1 auto;}
+  .legend{display:flex;gap:12px;font-size:12px;color:var(--bar-text);opacity:.9;flex-wrap:wrap;}
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block;}
+  .dot.soil{background:var(--soil)} .dot.plant{background:var(--plant)} .dot.residue{background:var(--residue)}
+
+  /* ── Controls ────────────────────────────────────────── */
+  .controls{display:flex;align-items:center;justify-content:center;gap:10px;
+    flex-wrap:wrap;padding:14px 16px 4px;font-size:14px;}
+  .controls button,.controls select,.controls input{
+    font:inherit;padding:6px 12px;border-radius:7px;border:1px solid var(--border);
+    background:var(--card);color:var(--text);cursor:pointer;}
+  .controls button:disabled{opacity:.4;cursor:default;}
+  .controls button:not(:disabled):hover{border-color:var(--accent);}
+  .controls input#jump{width:64px;text-align:center;cursor:text;}
+  #pageInfo{color:var(--muted);min-width:150px;text-align:center;}
+
+  /* ── Gallery grid ────────────────────────────────────── */
+  .grid{display:grid;gap:12px;padding:14px 16px 40px;
+    grid-template-columns:repeat(auto-fill,minmax(148px,1fr));max-width:1500px;margin:0 auto;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;
+    overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;}
+  .card:hover,.card:focus-visible{transform:translateY(-2px);
+    box-shadow:0 4px 12px rgba(0,0,0,.14);outline:none;border-color:var(--accent);}
+  .thumb{position:relative;aspect-ratio:1/1;background:var(--border);}
+  .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .thumb .mask{opacity:0;transition:opacity .18s ease;}
+  .card:hover .thumb .mask.ready{opacity:1;}
+  .thumb .peek{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;
+    font-size:10px;padding:2px 6px;border-radius:20px;opacity:0;transition:opacity .18s;pointer-events:none;}
+  .card:hover .thumb .peek{opacity:1;}
+  .meta{padding:7px 9px 9px;}
+  .meta .name{font-size:12px;font-weight:600;letter-spacing:.02em;}
+  .chips{display:flex;gap:8px;margin-top:5px;font-size:11px;color:var(--muted);}
+  .chips span{display:inline-flex;align-items:center;gap:4px;}
+
+  /* ── Modal ───────────────────────────────────────────── */
+  .modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.72);
+    display:none;align-items:center;justify-content:center;padding:16px;}
+  .modal.open{display:flex;}
+  .sheet{background:var(--card);border-radius:14px;max-width:1000px;width:100%;
+    max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+  .sheet header{display:flex;align-items:center;gap:10px;padding:14px 18px;
+    border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);}
+  .sheet header h2{margin:0;font-size:16px;}
+  .sheet header .close{margin-left:auto;background:none;border:none;color:var(--text);
+    font-size:22px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px;}
+  .sheet header .close:hover{background:var(--bg);}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:18px;}
+  @media (max-width:620px){.pair{grid-template-columns:1fr;}}
+  .pane figure{margin:0;}
+  .pane img{width:100%;border-radius:8px;background:var(--border);display:block;aspect-ratio:1/1;object-fit:contain;}
+  .pane figcaption{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;}
+  .statbar{display:flex;gap:18px;flex-wrap:wrap;padding:0 18px 8px;font-size:13px;}
+  .statbar b{font-variant-numeric:tabular-nums;}
+  .navbtns{display:flex;gap:10px;padding:0 18px 18px;}
+  .navbtns button{flex:1;font:inherit;padding:9px;border-radius:8px;border:1px solid var(--border);
+    background:var(--bg);color:var(--text);cursor:pointer;}
+  .navbtns button:not(:disabled):hover{border-color:var(--accent);}
+  .navbtns button:disabled{opacity:.4;cursor:default;}
 </style>
-    
 </head>
 <body>
-<h1>Stover Dataset Viewer</h1>
+
+<div class="bar">
+  <div class="brand"><img src="icons/logo.svg" alt="">Stover Dataset Explorer</div>
+  <a class="home" href="index.html">← Open the Stover tool</a>
+  <div class="spacer"></div>
+  <div class="legend">
+    <span><i class="dot soil"></i>Soil</span>
+    <span><i class="dot plant"></i>Plant</span>
+    <span><i class="dot residue"></i>Residue</span>
+    <span style="opacity:.7">· hover a tile to reveal its mask</span>
+  </div>
+</div>
+
 <div class="controls">
-  <button id="prevBtn">Previous</button>
-  <span id="pageInfo"></span>
-  <button id="nextBtn">Next</button>
+  <button id="prevBtn">‹ Prev</button>
+  <span id="pageInfo">Loading…</span>
+  <button id="nextBtn">Next ›</button>
+  <label>Per page
+    <select id="pageSize">
+      <option value="60">60</option>
+      <option value="120" selected>120</option>
+      <option value="240">240</option>
+    </select>
+  </label>
+  <label>Go to #
+    <input id="jump" type="number" min="1" inputmode="numeric" placeholder="1–3510">
+  </label>
 </div>
 
-<div id="loading" style="display:none; text-align:center; padding:20px;">
-  Loading images...
-</div>
+<div class="grid" id="grid"></div>
 
-<table id="imageTable">
-  <thead>
-    <tr>
-      <th>Info</th>
-      <th>RGB image</th>
-      <th>Ground truth label</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+<!-- Modal -->
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Image detail">
+    <header>
+      <h2 id="mTitle">image</h2>
+      <button class="close" id="mClose" aria-label="Close">✕</button>
+    </header>
+    <div class="pair">
+      <div class="pane"><figure><img id="mRGB" alt="RGB field image"><figcaption>RGB image</figcaption></figure></div>
+      <div class="pane"><figure><img id="mMask" alt="Ground-truth mask"><figcaption>Ground-truth mask</figcaption></figure></div>
+    </div>
+    <div class="statbar" id="mStats"></div>
+    <div class="navbtns">
+      <button id="mPrev">‹ Previous</button>
+      <button id="mNext">Next ›</button>
+    </div>
+  </div>
+</div>
 
 <script>
-const baseRGB = "https://raw.githubusercontent.com/soilwater/stover/main/dataset_v2/image_data/";
-const baseMask = "https://raw.githubusercontent.com/soilwater/stover/main/dataset_v2/label_data/";
-const totalImages = 1800;
-const perPage = 100;
-let currentPage = 0;
-let isLoading = false; // loading flag
+// ── Configuration ─────────────────────────────────────────────────────────
+const REPO   = "soilwater/stover", BRANCH = "main", DIR = "dataset_v1";
+// jsDelivr CDN (fast + CORS) — swap to raw.githubusercontent.com if ever needed.
+const CDN    = `https://cdn.jsdelivr.net/gh/${REPO}@${BRANCH}/${DIR}`;
+const rgbURL  = n => `${CDN}/image_data/image_${n}.jpg`;
+const maskURL = n => `${CDN}/label_data/label_${n}.png`;
+const CLASS_RGB = { 0:[165,42,42], 1:[0,200,0], 2:[255,212,0] }; // soil / plant / residue (match the app)
+const TOTAL_FALLBACK = 3510;
 
-// Converts grayscale mask to colored mask (brown=soil, green=plant, yellow=residue)
-async function recolorMask(url) {
-  const img = new Image();
-  img.crossOrigin = "Anonymous";
-  return new Promise((resolve) => {
+const pad = i => String(i).padStart(4, "0");
+let TOTAL = TOTAL_FALLBACK;
+let cover = null;                 // [ [soil,plant,residue], ... ] from dataset_stats.json
+let page = 0, pageSize = 120;
+const maskCache = new Map();      // index -> recolored dataURL
+
+// ── Load precomputed cover stats (instant chips; graceful if missing) ───────
+fetch("dataset_stats.json").then(r => r.ok ? r.json() : null).then(j => {
+  if (j && Array.isArray(j.cover)) { cover = j.cover; TOTAL = j.count || cover.length; }
+}).catch(()=>{}).finally(render);
+
+// ── Recolor a grayscale-coded mask to class colors (on demand, cached) ──────
+function recolorMask(i){
+  if (maskCache.has(i)) return Promise.resolve(maskCache.get(i));
+  return new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
     img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = img.width;
-      canvas.height = img.height;
+      const c = document.createElement("canvas");
+      c.width = img.width; c.height = img.height;
+      const ctx = c.getContext("2d");
       ctx.drawImage(img, 0, 0);
-      const imageData = ctx.getImageData(0, 0, img.width, img.height);
-      const data = imageData.data;
-      let soil = 0, plant = 0, residue = 0;
-
-      for (let i = 0; i < data.length; i += 4) {
-        const v = data[i]; // grayscale value (0,1,2)
-        if (v === 0) { data[i]=165; data[i+1]=42; data[i+2]=42; soil++; }       // brown
-        else if (v === 1) { data[i]=0; data[i+1]=255; data[i+2]=0; plant++; } // green
-        else if (v === 2) { data[i]=255; data[i+1]=255; data[i+2]=0; residue++; } // yellow
-      }
-      ctx.putImageData(imageData, 0, 0);
-      const total = soil + plant + residue;
-      resolve({
-        url: canvas.toDataURL(),
-        stats: {
-          soil: (soil/total*100).toFixed(1),
-          plant: (plant/total*100).toFixed(1),
-          residue: (residue/total*100).toFixed(1)
-        }
-      });
+      const d = ctx.getImageData(0,0,c.width,c.height), px = d.data;
+      for (let k=0;k<px.length;k+=4){ const col = CLASS_RGB[px[k]]; if(col){ px[k]=col[0]; px[k+1]=col[1]; px[k+2]=col[2]; } }
+      ctx.putImageData(d,0,0);
+      const url = c.toDataURL();
+      maskCache.set(i,url); resolve(url);
     };
     img.onerror = () => resolve(null);
-    img.src = url;
+    img.src = maskURL(pad(i));
   });
 }
 
-function getImageNumber(index) {
-  return index.toString().padStart(4, '0');
+// ── Render the current page of tiles ────────────────────────────────────────
+function render(){
+  const grid = document.getElementById("grid");
+  const start = page*pageSize, end = Math.min(start+pageSize, TOTAL);
+  document.getElementById("pageInfo").textContent = `${start+1}–${end} of ${TOTAL}`;
+  document.getElementById("prevBtn").disabled = page===0;
+  document.getElementById("nextBtn").disabled = end>=TOTAL;
+
+  grid.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  for (let i=start+1;i<=end;i++){
+    const n = pad(i);
+    const cv = cover ? cover[i-1] : null;
+    const card = document.createElement("div");
+    card.className = "card"; card.tabIndex = 0;
+    card.innerHTML = `
+      <div class="thumb">
+        <img class="rgb" src="${rgbURL(n)}" loading="lazy" decoding="async" alt="Field image ${n}">
+        <img class="mask" alt="">
+        <span class="peek">mask</span>
+      </div>
+      <div class="meta">
+        <div class="name">#${n}</div>
+        <div class="chips">
+          <span><i class="dot soil"></i>${cv?cv[0]:"–"}</span>
+          <span><i class="dot plant"></i>${cv?cv[1]:"–"}</span>
+          <span><i class="dot residue"></i>${cv?cv[2]:"–"}</span>
+        </div>
+      </div>`;
+    const maskImg = card.querySelector(".mask");
+    let hoverLoaded = false;
+    card.addEventListener("mouseenter", () => {
+      if (hoverLoaded) return; hoverLoaded = true;
+      recolorMask(i).then(u => { if(u){ maskImg.src = u; maskImg.classList.add("ready"); } });
+    });
+    card.addEventListener("click", () => openModal(i));
+    card.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openModal(i); } });
+    frag.appendChild(card);
+  }
+  grid.appendChild(frag);
+  window.scrollTo({top:0,behavior:"instant"});
 }
 
-
-async function loadPage(page) {
-  if (isLoading) return; // Prevent concurrent loads
-  isLoading = true;
-  document.getElementById("loading").style.display = "block";
-
-  const tbody = document.querySelector("#imageTable tbody");
-  tbody.innerHTML = "";
-  const start = page * perPage;
-  const end = Math.min(start + perPage, totalImages);
-  document.getElementById("pageInfo").textContent = 
-    `Showing ${start+1}-${end} of ${totalImages}`;
-
-  // Collect all rows first, then append at once
-  const rows = [];
-  
-  for (let i = start + 1; i <= end; i++) {
-    const imageNumber = getImageNumber(i);
-    const rgbUrl = `${baseRGB}image_${imageNumber}.jpg`;
-    const maskUrl = `${baseMask}label_${imageNumber}.png`;
-    const maskResult = await recolorMask(maskUrl);
-    const stats = maskResult?.stats || {soil: "-", plant: "-", residue: "-"};
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td class="stats">
-        <strong>${imageNumber}</strong><br>
-        Soil: ${stats.soil}%<br>
-        Plant: ${stats.plant}%<br>
-        Residue: ${stats.residue}%
-      </td>
-      <td><img src="${rgbUrl}" alt="RGB"></td>
-      <td><img src="${maskResult?.url || maskUrl}" alt="Mask"></td>
-    `;
-    rows.push(row);
-  }
-  
-  // Append all rows at once
-  rows.forEach(row => tbody.appendChild(row));
-  document.getElementById("loading").style.display = "none";
-  isLoading = false;
+// ── Modal ───────────────────────────────────────────────────────────────────
+let modalIdx = null;
+function openModal(i){
+  modalIdx = i; const n = pad(i);
+  document.getElementById("mTitle").textContent = `image_${n}`;
+  document.getElementById("mRGB").src = rgbURL(n);
+  const mMask = document.getElementById("mMask");
+  mMask.removeAttribute("src");
+  recolorMask(i).then(u => { mMask.src = u || maskURL(n); });
+  const cv = cover ? cover[i-1] : null;
+  document.getElementById("mStats").innerHTML = cv ? `
+      <span><i class="dot soil"></i> Soil <b>${cv[0]}%</b></span>
+      <span><i class="dot plant"></i> Plant <b>${cv[1]}%</b></span>
+      <span><i class="dot residue"></i> Residue <b>${cv[2]}%</b></span>` : "";
+  document.getElementById("mPrev").disabled = i<=1;
+  document.getElementById("mNext").disabled = i>=TOTAL;
+  document.getElementById("modal").classList.add("open");
+  document.getElementById("modal").setAttribute("aria-hidden","false");
 }
+function closeModal(){
+  document.getElementById("modal").classList.remove("open");
+  document.getElementById("modal").setAttribute("aria-hidden","true");
+  modalIdx = null;
+}
+function stepModal(d){ const t = modalIdx + d; if (t>=1 && t<=TOTAL) openModal(t); }
 
-document.getElementById("nextBtn").addEventListener("click", () => {
-  if ((currentPage + 1) * perPage < totalImages) {
-    currentPage++;
-    loadPage(currentPage);
-  }
+// ── Wiring ───────────────────────────────────────────────────────────────────
+document.getElementById("prevBtn").onclick = () => { if(page>0){page--;render();} };
+document.getElementById("nextBtn").onclick = () => { if((page+1)*pageSize<TOTAL){page++;render();} };
+document.getElementById("pageSize").onchange = e => {
+  const first = page*pageSize;               // keep roughly the same spot
+  pageSize = +e.target.value; page = Math.floor(first/pageSize); render();
+};
+document.getElementById("jump").addEventListener("keydown", e => {
+  if (e.key!=="Enter") return;
+  const v = parseInt(e.target.value,10);
+  if (v>=1 && v<=TOTAL){ page = Math.floor((v-1)/pageSize); render(); openModal(v); e.target.value=""; }
 });
-document.getElementById("prevBtn").addEventListener("click", () => {
-  if (currentPage > 0) {
-    currentPage--;
-    loadPage(currentPage);
-  }
+document.getElementById("mClose").onclick = closeModal;
+document.getElementById("mPrev").onclick = () => stepModal(-1);
+document.getElementById("mNext").onclick = () => stepModal(1);
+document.getElementById("modal").addEventListener("click", e => { if(e.target.id==="modal") closeModal(); });
+document.addEventListener("keydown", e => {
+  if (!document.getElementById("modal").classList.contains("open")) return;
+  if (e.key==="Escape") closeModal();
+  else if (e.key==="ArrowLeft") stepModal(-1);
+  else if (e.key==="ArrowRight") stepModal(1);
 });
-
-// initial load
-loadPage(0);
 </script>
 </body>
 </html>
