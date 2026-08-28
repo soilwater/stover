@@ -149,42 +149,18 @@ const REPO   = "soilwater/stover", BRANCH = "main", DIR = "dataset_v1";
 // jsDelivr CDN (fast + CORS) — swap to raw.githubusercontent.com if ever needed.
 const CDN    = `https://cdn.jsdelivr.net/gh/${REPO}@${BRANCH}/${DIR}`;
 const rgbURL  = n => `${CDN}/image_data/image_${n}.jpg`;
-const maskURL = n => `${CDN}/label_data/label_${n}.png`;
-const CLASS_RGB = { 0:[165,42,42], 1:[0,200,0], 2:[255,212,0] }; // soil / plant / residue (match the app)
+const maskURL = n => `${CDN}/mask_data/mask_${n}.png`;   // pre-colored, display-ready PNGs
 const TOTAL_FALLBACK = 3510;
 
 const pad = i => String(i).padStart(4, "0");
 let TOTAL = TOTAL_FALLBACK;
 let cover = null;                 // [ [soil,plant,residue], ... ] from dataset_stats.json
 let page = 0, pageSize = 120;
-const maskCache = new Map();      // index -> recolored dataURL
 
 // ── Load precomputed cover stats (instant chips; graceful if missing) ───────
 fetch("dataset_stats.json").then(r => r.ok ? r.json() : null).then(j => {
   if (j && Array.isArray(j.cover)) { cover = j.cover; TOTAL = j.count || cover.length; }
 }).catch(()=>{}).finally(render);
-
-// ── Recolor a grayscale-coded mask to class colors (on demand, cached) ──────
-function recolorMask(i){
-  if (maskCache.has(i)) return Promise.resolve(maskCache.get(i));
-  return new Promise(resolve => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      const c = document.createElement("canvas");
-      c.width = img.width; c.height = img.height;
-      const ctx = c.getContext("2d");
-      ctx.drawImage(img, 0, 0);
-      const d = ctx.getImageData(0,0,c.width,c.height), px = d.data;
-      for (let k=0;k<px.length;k+=4){ const col = CLASS_RGB[px[k]]; if(col){ px[k]=col[0]; px[k+1]=col[1]; px[k+2]=col[2]; } }
-      ctx.putImageData(d,0,0);
-      const url = c.toDataURL();
-      maskCache.set(i,url); resolve(url);
-    };
-    img.onerror = () => resolve(null);
-    img.src = maskURL(pad(i));
-  });
-}
 
 // ── Render the current page of tiles ────────────────────────────────────────
 function render(){
@@ -219,7 +195,8 @@ function render(){
     let hoverLoaded = false;
     card.addEventListener("mouseenter", () => {
       if (hoverLoaded) return; hoverLoaded = true;
-      recolorMask(i).then(u => { if(u){ maskImg.src = u; maskImg.classList.add("ready"); } });
+      maskImg.addEventListener("load", () => maskImg.classList.add("ready"), { once:true });
+      maskImg.src = maskURL(pad(i));
     });
     card.addEventListener("click", () => openModal(i));
     card.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openModal(i); } });
@@ -235,9 +212,7 @@ function openModal(i){
   modalIdx = i; const n = pad(i);
   document.getElementById("mTitle").textContent = `image_${n}`;
   document.getElementById("mRGB").src = rgbURL(n);
-  const mMask = document.getElementById("mMask");
-  mMask.removeAttribute("src");
-  recolorMask(i).then(u => { mMask.src = u || maskURL(n); });
+  document.getElementById("mMask").src = maskURL(n);
   const cv = cover ? cover[i-1] : null;
   document.getElementById("mStats").innerHTML = cv ? `
       <span><i class="dot soil"></i> Soil <b>${cv[0]}%</b></span>
