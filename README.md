@@ -58,7 +58,7 @@ LICENSE       MIT
 
 If you use Stover, the dataset, or the model, please cite:
 
-> Patrignani, A., Bisheh, M, Naithiya, D. 2026. *Segmenting Crop Residue, Canopy, and Soil in Field Images: An Open Dataset and the Stover Tool.* Under review in Agronomy Journal. 
+> Patrignani, A., Bisheh, M, Nahitiya, D. 2026. *Segmenting Crop Residue, Canopy, and Soil in Field Images: An Open Dataset and the Stover Tool.* Under review in Agronomy Journal.
 
 *Manuscript in review at Agronomy Journal; a preprint is available on ESS Open Archive.*
 
