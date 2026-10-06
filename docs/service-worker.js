@@ -6,7 +6,7 @@
 //
 // Bump CACHE_VERSION whenever you deploy a new build so users get fresh files.
 
-const CACHE_VERSION = 'stover-v3.0.0';
+const CACHE_VERSION = 'stover-v3.1.0';
 
 const PRECACHE_URLS = [
   './',

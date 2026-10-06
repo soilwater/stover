@@ -413,7 +413,7 @@ async function prepareImage(file) {
 
   return {
     filename: file.name,
-    netData,
+    netCanvas, netData,
     dispCanvas, dispW: dispDim, dispH: dispDim,
     ow, oh,
     mpx: (ow * oh) / 1_000_000,
@@ -773,15 +773,14 @@ async function processBatch() {
           zip.file(`uncertainty_${baseName}.png`, uncertBlob);
         }
         if (wantBlended) {
-          // Blend photo + class overlay at display resolution
-          const up = resizeCanvas(classCanvas, img.dispW, img.dispH, false);
+          // Blend photo + class overlay at the model resolution (same size as the mask)
           const blend = document.createElement('canvas');
-          blend.width = img.dispW; blend.height = img.dispH;
+          blend.width = NET_SIDE; blend.height = NET_SIDE;
           const bctx = blend.getContext('2d');
-          bctx.drawImage(img.dispCanvas, 0, 0);
+          bctx.drawImage(img.netCanvas, 0, 0);
           bctx.globalAlpha = state.alpha;
           bctx.imageSmoothingEnabled = false;
-          bctx.drawImage(up, 0, 0);
+          bctx.drawImage(classCanvas, 0, 0);
           bctx.globalAlpha = 1;
           const blendedBlob = await canvasToBlob(blend, 'image/jpeg', 0.8);
           zip.file(`blended_${baseName}.jpg`, blendedBlob);
