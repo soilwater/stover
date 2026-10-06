@@ -353,7 +353,7 @@
         <p class="guide-xref">New to Stover? See <strong>Collecting images</strong> in the Help menu for how to take photos the model reads well.</p>
 
         <h3>How classification works</h3>
-        <p>Each image is resized to 512 × 512 pixels and passed through a U-Net that assigns every pixel to one of three classes — crop residue, green canopy, or bare soil. The reported cover percentages are the fraction of pixels in each class. Classification runs at 512 × 512 regardless of the input image size, so very large photos and small phone photos are treated consistently. The first classification after the app loads may take a moment while the model initializes; subsequent images are faster.</p>
+        <p>Each image is resized to 1024 × 1024 pixels and passed through a U-Net that assigns every pixel to one of three classes — crop residue, green canopy, or bare soil. The reported cover percentages are the fraction of pixels in each class. Classification runs at 1024 × 1024 regardless of the input image size, so very large photos and small phone photos are treated consistently. The first classification after the app loads may take a moment while the model initializes; subsequent images are faster.</p>
 
         <h3>Sidebar widgets (top to bottom)</h3>
 
@@ -379,10 +379,10 @@
         Selects which files the batch will produce. "Table" writes a CSV with one row per image containing the filename, the residue / canopy / soil cover percentages, GPS coordinates, timestamp, device, and original image dimensions. "Blended" writes a JPEG per image showing the source photo overlaid with the classification mask at the current opacity. "Class masks" writes a PNG per image with the three-color class map. Blended and Class-mask outputs are packaged together into a single ZIP archive. At least one option must be selected.</p>
 
         <p><strong>Process batch</strong><br />
-        Runs the U-Net on every loaded image and downloads the selected outputs through your browser. The progress bar tracks completion. Processing time depends on the number of images and your device; each image is classified at 512 × 512.</p>
+        Runs the U-Net on every loaded image and downloads the selected outputs through your browser. The progress bar tracks completion. Processing time depends on the number of images and your device; each image is classified at 1024 × 1024.</p>
 
         <h3>Display and saved files</h3>
-        <p>The image shown in the main window is a preview capped at about 800 pixels on the longest side, with the classification mask overlaid. Classification is always computed at 512 × 512, and the reported cover percentages come from that resolution. Class-mask PNGs are saved at 512 × 512; blended JPEGs are saved at the preview resolution.</p>
+        <p>The image shown in the main window is a preview capped at about 800 pixels on the longest side, with the classification mask overlaid. Classification is always computed at 1024 × 1024, and the reported cover percentages come from that resolution. Class-mask PNGs are saved at 1024 × 1024; blended JPEGs are saved at the preview resolution.</p>
 
         <h3>About this web version</h3>
         <p>Everything — image decoding, neural-network inference, and file packaging — runs locally on your device using onnxruntime-web. No images are ever uploaded anywhere. Because it's a Progressive Web App, you can install it (see "Install App" in the menu bar, where supported) for an offline, app-like experience. The model file is roughly 70 MB and is cached on first load.</p>

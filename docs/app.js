@@ -8,9 +8,9 @@
 
 // ── Constants ─────────────────────────────────────────────────────────
 const VERSION          = '1.0.0';
-const MODEL_VERSION    = '20260824';   // date-stamp of the deployed U-Net (shown in the PDF report)
+const MODEL_VERSION    = '20261005';   // date-stamp of the deployed U-Net (shown in the PDF report)
 const MODEL_URL        = './model.onnx';
-const NET_SIDE         = 512;   // model input/output side (fixed)
+const NET_SIDE         = 1024;  // model input/output side (~1 mm per pixel for a 1 m x 1 m frame)
 const DISPLAY_MAX_SIDE = 800;   // px — on-screen preview cap (longest side)
 const THUMB_MAX_SIDE   = 96;    // px — thumbnail size in results table
 const LB_MAX_SIDE      = 800;   // px — lightbox image max side
@@ -19,7 +19,7 @@ const LB_MAX_SIDE      = 800;   // px — lightbox image max side
 // Colors match the manuscript's relabel_image(): soil maroon, plant green, residue yellow.
 // Model's typical 95% range per class (±1.96 SD of per-image cover error on the test set),
 // in percentage points. Reported uniformly as the expected uncertainty for any single image.
-const CLASS_CI = { residue: 4.0, plant: 1.1, soil: 3.8 };
+const CLASS_CI = { residue: 2.6, plant: 0.4, soil: 2.5 };   // model 20261005, 1024 px test images
 
 const CLASS_RGB = [
   [165, 42, 42],   // 0 soil
@@ -261,11 +261,11 @@ function maybeShowGpuTip() {
 }
 
 // ── Classification ────────────────────────────────────────────────────
-// Runs the U-Net on a 512x512 RGB canvas and returns a Uint8 label map
+// Runs the U-Net on a NET_SIDE x NET_SIDE RGB canvas and returns a Uint8 label map
 // (0=soil, 1=plant, 2=residue) plus per-class cover fractions.
 
-async function classify512(imageData512) {
-  const { data } = imageData512;                 // RGBA, 512*512*4
+async function classifyNet(imageData) {
+  const { data } = imageData;                 // RGBA, NET_SIDE*NET_SIDE*4
   const N = NET_SIDE * NET_SIDE;
   const input = new Float32Array(3 * N);         // planar CHW, normalized [0,1]
   for (let i = 0; i < N; i++) {
@@ -279,7 +279,7 @@ async function classify512(imageData512) {
   const result = await state.session.run({ input: tensor });
   state.lastMs = performance.now() - _t0;
   console.log(`[stover] ${state.backend} inference ${state.lastMs.toFixed(0)} ms`);
-  const out = (result.output ?? result[Object.keys(result)[0]]).data; // [1,3,512,512]
+  const out = (result.output ?? result[Object.keys(result)[0]]).data; // [1,3,NET_SIDE,NET_SIDE]
 
   const labels = new Uint8Array(N);
   const maxProb = new Float32Array(N); // [uncertainty] softmax prob of the winning class
@@ -302,7 +302,7 @@ async function classify512(imageData512) {
   return { labels, cover, maxProb };
 }
 
-// Colored 512x512 class map (opaque). Background classes are all painted.
+// Colored NET_SIDE x NET_SIDE class map (opaque). Background classes are all painted.
 function buildClassImageData(labels) {
   const N = NET_SIDE * NET_SIDE;
   const out = new Uint8ClampedArray(N * 4);
@@ -318,7 +318,7 @@ function buildClassImageData(labels) {
 // Per-pixel uncertainty = 1 − (top-class softmax probability), scaled so that a
 // perfect 3-way tie maps to 1.0. Dark = the model is confident, bright yellow =
 // uncertain (typically along soil↔residue edges and ambiguous thin residue).
-// To DELETE this feature: remove this block, the maxProb line in classify512,
+// To DELETE this feature: remove this block, the maxProb line in classifyNet,
 // the 'uncertainty' branch in renderBlend, the legend toggle in the overlay-mode
 // handler, and the "Uncertainty" radio + #uncert-legend in index.html.
 const MAGMA = [[0,0,4],[28,16,68],[79,18,123],[129,37,129],[181,54,122],[229,80,100],[251,135,97],[254,194,135],[252,253,191]];
@@ -375,10 +375,10 @@ function resizeCanvas(srcCanvas, w, h, smooth) {
 
 // ── Image decode ──────────────────────────────────────────────────────
 // Replicates the dataset preprocessing (process_new_images.ipynb): center-crop the
-// longer side to a centered square, then resize that square to 512x512. Matching
+// longer side to a centered square, then resize that square to NET_SIDE x NET_SIDE. Matching
 // this at inference is essential — the model was trained on center-cropped squares,
 // not on anisotropically squished frames. The display copy is the same cropped
-// square, so the 512x512 mask maps onto it 1:1 (no aspect warping).
+// square, so the mask maps onto it 1:1 (no aspect warping).
 
 async function prepareImage(file) {
   const url = URL.createObjectURL(file);
@@ -393,7 +393,7 @@ async function prepareImage(file) {
   const sx = Math.round((ow - side) / 2);
   const sy = Math.round((oh - side) / 2);
 
-  // Network input: cropped square -> 512x512
+  // Network input: cropped square -> NET_SIDE x NET_SIDE
   const netCanvas = document.createElement('canvas');
   netCanvas.width = NET_SIDE; netCanvas.height = NET_SIDE;
   const nctx = netCanvas.getContext('2d', { willReadFrequently: true });
@@ -425,10 +425,10 @@ async function prepareImage(file) {
 
 async function classifyCurrent(updateInfo = true) {
   const c = state.current;
-  const { labels, cover, maxProb } = await classify512(c.netData);
+  const { labels, cover, maxProb } = await classifyNet(c.netData);
   c.labels = labels;
   c.cover = cover;
-  c.classCanvas = imageDataToCanvas(buildClassImageData(labels)); // 512x512
+  c.classCanvas = imageDataToCanvas(buildClassImageData(labels)); // NET_SIDE x NET_SIDE
   c.maxProb = maxProb;        // [uncertainty]
   c.uncertCanvas = null;      // [uncertainty] built lazily on first view
   if (updateInfo) {
@@ -571,7 +571,7 @@ function appendResultRow(r) {
 
   tr.querySelector('.thumb-mask').addEventListener('click', async () => {
     const prepared = await prepareImage(r.file);
-    const { labels } = await classify512(prepared.netData);
+    const { labels } = await classifyNet(prepared.netData);
     const classCanvas = imageDataToCanvas(buildClassImageData(labels));
     const up = resizeCanvas(classCanvas, prepared.dispW, prepared.dispH, false);
     openLightbox(up.toDataURL('image/jpeg', 0.88));
@@ -712,9 +712,9 @@ async function processBatch() {
       try { img = await prepareImage(state.files[i]); }
       catch (_) { continue; }
 
-      const { labels, cover, maxProb } = await classify512(img.netData);
+      const { labels, cover, maxProb } = await classifyNet(img.netData);
       const baseName = basenameNoExt(img.filename);
-      const classCanvas = imageDataToCanvas(buildClassImageData(labels)); // 512x512
+      const classCanvas = imageDataToCanvas(buildClassImageData(labels)); // NET_SIDE x NET_SIDE
 
       // Thumbnails for results table
       const origThumb = resizeCanvas(img.dispCanvas, ...fitBox(img.dispW, img.dispH, THUMB_MAX_SIDE), true);
