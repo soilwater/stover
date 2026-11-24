@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 400" font-family="'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif" role="img" aria-label="Diagram: a person bends forward and holds a camera flat about 1 meter (3 feet) above the ground, at waist height, with the lens pointing straight down. The camera view covers roughly 1 meter by 1 meter of ground; Stover analyzes the center square of the image and trims the sides of wider images.">
+  <defs>
+    <pattern id="g10" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="#efece4" stroke-width="0.7"/></pattern>
+    <pattern id="g50" width="50" height="50" patternUnits="userSpaceOnUse"><rect width="50" height="50" fill="url(#g10)"/><path d="M50 0H0V50" fill="none" stroke="#e7e2d6" stroke-width="0.8"/></pattern>
+    <pattern id="soil" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V8" stroke="#55606a" stroke-width="1"/></pattern>
+    <pattern id="soilLight" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V9" stroke="#ddd5c4" stroke-width="1"/></pattern>
+    <pattern id="trim" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><path d="M0 0V6" stroke="#8a939b" stroke-width="1"/></pattern>
+    <linearGradient id="fade" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#1e2a30" stop-opacity="0"/>
+      <stop offset="0.06" stop-color="#1e2a30" stop-opacity="1"/>
+      <stop offset="0.94" stop-color="#1e2a30" stop-opacity="1"/>
+      <stop offset="1" stop-color="#1e2a30" stop-opacity="0"/>
+    </linearGradient>
+    <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 1.6L10 5L0 8.4Z" fill="#1e2a30"/></marker>
+    <marker id="arrA" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 1.6L10 5L0 8.4Z" fill="#c2410c"/></marker>
+    <clipPath id="frame"><rect x="600" y="180" width="200" height="150"/></clipPath>
+    <clipPath id="groundClip"><rect x="30" y="330" width="510" height="12"/></clipPath>
+  </defs>
+
+  <!-- paper -->
+  <rect width="860" height="400" fill="#f7f5ef"/>
+  <rect width="860" height="400" fill="url(#g50)"/>
+
+  <!-- ===== Side view ===== -->
+  <text x="40" y="50" font-size="13" font-weight="600" letter-spacing="1.6" fill="#55606a">SIDE VIEW</text>
+
+  <!-- ground -->
+  <g clip-path="url(#groundClip)" opacity="0.45"><rect x="30" y="330" width="510" height="12" fill="url(#soil)"/></g>
+  <rect x="30" y="329.2" width="510" height="1.6" fill="url(#fade)"/>
+
+  <!-- field of view -->
+  <path d="M263 186L188 330H338Z" fill="#c2410c" fill-opacity="0.07"/>
+  <path d="M263 186L188 330M263 186L338 330" stroke="#c2410c" stroke-width="1.2" stroke-dasharray="6 4"/>
+  <path d="M188 330H338" stroke="#c2410c" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- person (neutral figure) -->
+  <g stroke-linecap="round" fill="none">
+    <g stroke="#1e2a30">
+      <path d="M150 194L194.7 130.1" stroke-width="23"/>
+      <path d="M194.7 130.1L204 116" stroke-width="11"/>
+      <path d="M150 194L156 260" stroke-width="17"/>
+      <path d="M156 260L150 322" stroke-width="13.4"/>
+      <path d="M147 326L174 328" stroke-width="10"/>
+      <path d="M194.7 130.1L212.6 171.4" stroke-width="11.4"/>
+      <path d="M212.6 171.4L251 176" stroke-width="10.4"/>
+    </g>
+    <circle cx="211.9" cy="105.5" r="14.4" fill="#1e2a30"/>
+    <g stroke="#d9ddd6">
+      <path d="M150 194L194.7 130.1" stroke-width="20.2"/>
+      <path d="M194.7 130.1L204 116" stroke-width="8.2"/>
+      <path d="M150 194L156 260" stroke-width="14.2"/>
+      <path d="M156 260L150 322" stroke-width="10.6"/>
+      <path d="M147 326L174 328" stroke-width="7.2"/>
+      <path d="M194.7 130.1L212.6 171.4" stroke-width="8.6"/>
+      <path d="M212.6 171.4L251 176" stroke-width="7.6"/>
+    </g>
+    <circle cx="211.9" cy="105.5" r="13" fill="#d9ddd6"/>
+  </g>
+  <g fill="#8a939b">
+    <circle cx="150" cy="194" r="2"/><circle cx="156" cy="260" r="2"/><circle cx="194.7" cy="130.1" r="2"/><circle cx="212.6" cy="171.4" r="2"/>
+  </g>
+
+  <!-- camera: body with lens pointing down -->
+  <rect x="250" y="171" width="26" height="10" rx="2" fill="#1e2a30"/>
+  <rect x="258" y="181" width="10" height="4" rx="1" fill="#1e2a30"/>
+
+  <!-- optical axis -->
+  <path d="M263 187V328" stroke="#c2410c" stroke-width="1.5" stroke-dasharray="14 4 2 4" marker-end="url(#arrA)"/>
+  <path d="M263 320h10v10" fill="none" stroke="#1e2a30" stroke-width="1.2"/>
+  <text x="278" y="318" font-size="14" fill="#1e2a30">90°</text>
+  <text transform="translate(255 279) rotate(-90)" text-anchor="middle" font-size="12.5" font-weight="600" letter-spacing="1.2" fill="#c2410c">OPTICAL AXIS</text>
+
+  <!-- camera callout -->
+  <path d="M275 172L294 141H302" fill="none" stroke="#1e2a30" stroke-width="1"/>
+  <circle cx="275" cy="172" r="2" fill="#1e2a30"/>
+  <text x="307" y="137" font-size="16" font-weight="700" fill="#1e2a30">Camera held flat</text>
+  <text x="307" y="157" font-size="14.5" fill="#55606a">lens facing straight down</text>
+
+  <!-- height dimension -->
+  <path d="M270 184H428" stroke="#8a939b" stroke-width="0.9"/>
+  <path d="M420 184V330" stroke="#c2410c" stroke-width="1.4" marker-start="url(#arrA)" marker-end="url(#arrA)"/>
+  <text x="434" y="254" font-size="26" font-weight="700" fill="#c2410c">≈ 1 m</text>
+  <text x="434" y="277" font-size="15" fill="#1e2a30">3 ft · waist height</text>
+
+  <text x="285" y="364" text-anchor="middle" font-size="15" fill="#1e2a30">Keep your feet out of the frame</text>
+  <text x="285" y="384" text-anchor="middle" font-size="14" fill="#55606a">a pole or monopod also works</text>
+
+  <!-- ===== Camera view ===== -->
+  <text x="593" y="50" font-size="13" font-weight="600" letter-spacing="1.6" fill="#55606a">CAMERA VIEW</text>
+
+  <g clip-path="url(#frame)">
+    <rect x="600" y="180" width="200" height="150" fill="#f1ece1"/>
+    <rect x="600" y="180" width="200" height="150" fill="url(#soilLight)"/>
+    <g fill="#ffd400" fill-opacity="0.65" stroke="#1e2a30" stroke-width="1.1">
+      <rect x="593" y="236" width="26" height="5" rx="1.5" transform="rotate(-20 606 238)"/>
+      <rect x="779" y="197" width="26" height="5" rx="1.5" transform="rotate(55 792 200)"/>
+      <rect x="772" y="291.5" width="24" height="5" rx="1.5" transform="rotate(-30 784 294)"/>
+      <rect x="636" y="202" width="34" height="6" rx="1.5" transform="rotate(-28 653 205)"/>
+      <rect x="713" y="197.5" width="28" height="5" rx="1.5" transform="rotate(15 727 200)"/>
+      <rect x="740" y="234" width="30" height="6" rx="1.5" transform="rotate(62 755 237)"/>
+      <rect x="626" y="262" width="38" height="6" rx="1.5" transform="rotate(12 645 265)"/>
+      <rect x="669" y="300" width="32" height="6" rx="1.5" transform="rotate(-40 685 303)"/>
+      <rect x="719" y="290" width="36" height="6" rx="1.5" transform="rotate(25 737 293)"/>
+      <rect x="664" y="222.5" width="22" height="5" rx="1.5" transform="rotate(70 675 225)"/>
+      <rect x="710" y="267.5" width="20" height="5" rx="1.5" transform="rotate(-15 720 270)"/>
+    </g>
+    <!-- trimmed sides -->
+    <rect x="600" y="180" width="25" height="150" fill="#f7f5ef" fill-opacity="0.72"/>
+    <rect x="775" y="180" width="25" height="150" fill="#f7f5ef" fill-opacity="0.72"/>
+    <rect x="600" y="180" width="25" height="150" fill="url(#trim)" opacity="0.6"/>
+    <rect x="775" y="180" width="25" height="150" fill="url(#trim)" opacity="0.6"/>
+  </g>
+  <!-- full camera frame + analyzed square -->
+  <rect x="600" y="180" width="200" height="150" fill="none" stroke="#8a939b" stroke-width="1" stroke-dasharray="4 3"/>
+  <rect x="625" y="180" width="150" height="150" fill="none" stroke="#1e2a30" stroke-width="1.6"/>
+  <path d="M593 194V173H614M786 173H807V194M807 316V337H786M614 337H593V316" fill="none" stroke="#c2410c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="700" cy="255" r="7" fill="#f7f5ef" stroke="#c2410c" stroke-width="1.5"/>
+  <path d="M682 255H718M700 237V273" stroke="#c2410c" stroke-width="1.2"/>
+  <circle cx="700" cy="255" r="1.8" fill="#c2410c"/>
+
+  <!-- analyzed-square dimensions -->
+  <path d="M625 166V146M775 166V146" stroke="#8a939b" stroke-width="0.9"/>
+  <path d="M625 154H775" stroke="#1e2a30" stroke-width="1.2" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="700" y="146" text-anchor="middle" font-size="14.5" fill="#1e2a30">≈ 1 m</text>
+  <path d="M813 180H833M813 330H833" stroke="#8a939b" stroke-width="0.9"/>
+  <path d="M825 180V330" stroke="#1e2a30" stroke-width="1.2" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text transform="translate(847 255) rotate(-90)" text-anchor="middle" font-size="14.5" fill="#1e2a30">≈ 1 m</text>
+
+  <text x="700" y="364" text-anchor="middle" font-size="15" fill="#1e2a30">Center square is analyzed</text>
+  <text x="700" y="384" text-anchor="middle" font-size="14" fill="#55606a">sides of wider images are trimmed</text>
+</svg>

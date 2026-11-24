@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stover: crop residue and ground cover from field photos</title>
+<meta name="description" content="Stover classifies every pixel of a downward-facing field photo as crop residue, green canopy, or bare soil, and reports residue, canopy, and total ground cover. Free for research, extension, and teaching.">
+<link rel="icon" type="image/png" sizes="32x32" href="app/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="app/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<header class="nav">
+  <nav class="wrap" aria-label="Main">
+    <a class="brand" href="#top">
+      <svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true"><rect x="4" y="4" width="92" height="92" rx="20" fill="#a52a2a"/><rect x="22.88" y="22.88" width="16.48" height="35.36" rx="2.64" fill="#ffd400"/><rect x="41.76" y="22.88" width="35.36" height="16.48" rx="2.64" fill="#ffd400"/><rect x="41.76" y="41.76" width="16.48" height="16.48" rx="2.64" fill="#00c800"/><rect x="60.64" y="41.76" width="16.48" height="35.36" rx="2.64" fill="#ffd400"/><rect x="22.88" y="60.64" width="35.36" height="16.48" rx="2.64" fill="#ffd400"/></svg>
+      <span>Stover</span>
+    </a>
+    <div class="nav-links">
+      <a href="#gallery">Gallery</a>
+      <a href="#how">How it works</a>
+      <a href="#field-guide">Field guide</a>
+      <a href="#dataset">Dataset</a>
+      <a href="#cite">Cite</a>
+    </div>
+    <a class="btn btn-primary" href="#get">Get Stover</a>
+  </nav>
+</header>
+
+<main>
+
+<!-- Hero -->
+<section id="top" class="wrap hero">
+  <div class="hero-text">
+    <div class="pill"><span class="swatches"><i style="background:var(--residue)"></i><i style="background:var(--canopy)"></i><i style="background:var(--soil)"></i></span>Pixel-level ground cover</div>
+    <h1>Crop residue cover from a single photo.</h1>
+    <p>Stover classifies every pixel of a downward-facing field photo as crop residue, green vegetation, or bare soil, and reports residue cover, canopy cover, and total ground cover. It runs on your own computer, and your images are never uploaded.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="https://github.com/soilwater/stover/releases/latest" data-download>
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><rect x="2" y="2" width="9.5" height="9.5"/><rect x="12.5" y="2" width="9.5" height="9.5"/><rect x="2" y="12.5" width="9.5" height="9.5"/><rect x="12.5" y="12.5" width="9.5" height="9.5"/></svg>
+        Download for Windows
+      </a>
+      <a class="btn btn-ghost" href="app/">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>
+        Open the web app
+      </a>
+    </div>
+    <p class="fine">Free for research, extension, and teaching · Kansas State University, Department of Agronomy</p>
+  </div>
+
+  <figure>
+    <div class="compare" id="compare">
+      <img src="assets/hero_photo.jpg" alt="Downward-facing photo of scattered crop residue on bare soil with a few small weeds" width="1100" height="1100">
+      <img class="mask" src="assets/hero_mask.png" alt="" width="1100" height="1100">
+      <div class="divider" aria-hidden="true"></div>
+      <label for="hero-split" class="visually-hidden">Reveal the classification</label>
+      <input id="hero-split" type="range" min="0" max="100" step="1" value="50">
+      <div class="knob" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15170f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-6 6 6 6"/><path d="M15 6l6 6-6 6"/></svg></div>
+      <span class="tag" style="left:14px">photo</span>
+      <span class="tag" style="right:14px">classified</span>
+    </div>
+    <figcaption class="readout">
+      <div><div class="lab"><i style="background:var(--residue)"></i>Residue</div><div class="val">39.2<small>%</small></div></div>
+      <div><div class="lab"><i style="background:var(--canopy)"></i>Canopy</div><div class="val">2.9<small>%</small></div></div>
+      <div><div class="lab"><i style="background:var(--soil)"></i>Soil</div><div class="val">58.0<small>%</small></div></div>
+      <div class="total"><div class="lab">Total cover</div><div class="val">42.1<small>%</small></div></div>
+    </figcaption>
+    <p class="fine">Total ground cover is residue plus canopy.</p>
+  </figure>
+</section>
+
+<!-- Stats -->
+<section class="stats" aria-label="Dataset and model">
+  <div class="wrap">
+    <div class="stat"><b>5,000</b><span>hand-labeled field images in the training dataset</span></div>
+    <div class="stat"><b>97.2%</b><span>pixel accuracy on held-out test images</span></div>
+    <div class="stat"><b>0.94</b><span>mean intersection-over-union across the three classes</span></div>
+    <div class="stat"><b>~1<small> mm</small></b><span>per pixel: each photo is classified at 1024 × 1024 pixels</span></div>
+  </div>
+</section>
+
+<!-- Applications -->
+<section id="applications" class="wrap section">
+  <div class="head">
+    <div class="eyebrow">Applications</div>
+    <h2>Where ground cover matters</h2>
+    <p class="lead">Stover measures residue cover, green canopy cover, and total ground cover from a single downward-facing photo. Typical applications include quantifying residue cover after tillage and planting, soil erosion and water conservation studies, soil evaporation studies, soil carbon studies, and ground truth for satellite and drone estimates of ground cover.</p>
+  </div>
+</section>
+
+<!-- Gallery -->
+<section id="gallery" class="wrap section">
+  <div class="gallery-head">
+    <div class="head">
+      <div class="eyebrow">Gallery</div>
+      <h2>From heavy stover to bare, cracked soil.</h2>
+      <p class="lead">Examples of dense stover, weathered straw, scattered stalks, tilled ground, and green vegetation. Hover over or tap a tile to switch between the photo and the classified image.</p>
+    </div>
+    <div class="seg" id="view" role="group" aria-label="Tile view">
+      <button type="button" data-view="photos" aria-pressed="true">Photos</button>
+      <button type="button" data-view="masks" aria-pressed="false">Classified</button>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="fine">Field photos and pixel-level labels from the Stover dataset. Total cover is residue plus canopy. Yellow residue, green canopy, and maroon soil follow the color scheme of the associated publication.</p>
+</section>
+
+<!-- How it works -->
+<section id="how" class="wrap section">
+  <div class="head">
+    <div class="eyebrow">How it works</div>
+    <h2>Shoot, load, classify, export.</h2>
+  </div>
+  <ol class="cards">
+    <li class="card"><div class="num">01</div><h3>Take photos</h3><p>Use any phone or camera. Hold it at waist height and point it straight down at about one square meter of ground.</p></li>
+    <li class="card"><div class="num">02</div><h3>Load images</h3><p>Load one or many JPG or PNG files. Stover reads the capture time, GPS coordinates, and device from each image’s EXIF data.</p></li>
+    <li class="card"><div class="num">03</div><h3>Classify</h3><p>A neural network classifies every pixel as residue, canopy, or soil at 1024 × 1024 pixels, about 1 mm per pixel.</p></li>
+    <li class="card"><div class="num">04</div><h3>Export</h3><p>Export data as CSV, classified images, or a PDF report.</p></li>
+  </ol>
+</section>
+
+<!-- Privacy -->
+<section class="wrap section">
+  <div class="band">
+    <h2>Your images stay on your computer.</h2>
+    <ul>
+      <li><strong>No account</strong><span>No sign-up or login required.</span></li>
+      <li><strong>No uploads</strong><span>Images are processed on your own device.</span></li>
+      <li><strong>Works offline</strong><span>No internet connection needed to classify images.</span></li>
+      <li><strong>GPU acceleration</strong><span>Uses the graphics card when available. On the processor, results are identical, just slower.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- Field guide -->
+<section id="field-guide" class="wrap section">
+  <div class="head">
+    <div class="eyebrow">Field guide</div>
+    <h2>Taking good images</h2>
+  </div>
+  <figure class="guide-figure">
+    <picture>
+      <source media="(max-width: 640px)" srcset="app/assets/guide/step1_height_portrait.svg" width="400" height="700">
+      <img src="app/assets/guide/step1_height.svg" alt="A person holds a camera flat about 1 meter (3 feet) above the ground, at waist height, with the lens pointing straight down. The camera view covers roughly 1 meter by 1 meter of ground; Stover analyzes the center square of the image and trims the sides of wider images." width="860" height="400" loading="lazy">
+    </picture>
+    <figcaption>Camera flat, lens pointing straight down, about 1 m (3 ft) above the ground.</figcaption>
+  </figure>
+  <div class="two">
+    <div class="dodont do">
+      <h3><i style="background:#1e6b2e"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Do</h3>
+      <ul>
+        <li>Take images at waist height (about 1 m or 3 ft)</li>
+        <li>Point the camera straight down</li>
+        <li>Take images in good illumination</li>
+        <li>Keep the frame clear of other objects</li>
+        <li>Make sure the image is sharp, not blurry</li>
+      </ul>
+    </div>
+    <div class="dodont dont">
+      <h3><i style="background:#9b2c2c"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></i>Don’t</h3>
+      <ul>
+        <li>Take images from shoulder height or higher</li>
+        <li>Tilt the camera</li>
+        <li>Include specular reflections (glare)</li>
+        <li>Include shoes, stakes, or flags in the frame</li>
+        <li>Zoom in</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Get Stover -->
+<section id="get" class="wrap section">
+  <div class="head">
+    <div class="eyebrow">Get Stover</div>
+    <h2>Two ways to run it</h2>
+  </div>
+  <div class="two">
+    <div class="get main">
+      <div class="get-head">
+        <i><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="#15170f"><rect x="2" y="2" width="9.5" height="9.5"/><rect x="12.5" y="2" width="9.5" height="9.5"/><rect x="2" y="12.5" width="9.5" height="9.5"/><rect x="12.5" y="12.5" width="9.5" height="9.5"/></svg></i>
+        <div><h3>Stover for Windows</h3><div class="meta" id="win-meta">Windows 10 and 11 · free</div></div>
+      </div>
+      <p>Desktop app for large batches of photos and for video transects, with the same exports as the web app. No administrator rights needed to install.</p>
+      <a class="btn btn-primary" href="https://github.com/soilwater/stover/releases/latest" data-download>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>
+        Download installer
+      </a>
+    </div>
+    <div class="get">
+      <div class="get-head">
+        <i><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ecebe4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg></i>
+        <div><h3>Stover on the web</h3><div class="meta">Chrome or Edge · installable · works offline</div></div>
+      </div>
+      <p>Runs in your browser with nothing to install. Use Install App to add it to your desktop or phone and use it offline.</p>
+      <a class="btn btn-ghost" href="app/">
+        Open the web app
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Dataset -->
+<section id="dataset" class="wrap section">
+  <div class="head">
+    <div class="eyebrow">Dataset</div>
+    <h2>Open dataset and models</h2>
+    <p class="lead">Field images with pixel-level labels (soil, plant, residue) and the trained U-Net. Browse a <a href="app/dataset.html">100-image sample</a> online.</p>
+  </div>
+  <div class="two">
+    <div class="get main">
+      <div class="get-head">
+        <div><h3>Stover dataset v2</h3><div class="meta">5,000 images · 1024 × 1024 · five zip files of 0.9–1.2 GB</div></div>
+      </div>
+      <p>The complete dataset, with the U-Net used by the web and Windows apps.</p>
+      <a class="btn btn-primary" href="https://github.com/soilwater/stover/releases/tag/dataset-v2">Download dataset v2</a>
+    </div>
+    <div class="get">
+      <div class="get-head">
+        <div><h3>Stover dataset v1</h3><div class="meta">3,510 images · 512 × 512 · one zip file of ~1.1 GB</div></div>
+      </div>
+      <p>A lighter version for quick experiments and smaller GPUs, with its U-Net.</p>
+      <a class="btn btn-ghost" href="https://github.com/soilwater/stover/releases/tag/dataset-v1">Download dataset v1</a>
+    </div>
+  </div>
+</section>
+
+<!-- Cite -->
+<section id="cite" class="wrap section cite">
+  <div class="head">
+    <div class="eyebrow">Cite</div>
+    <h2>Using Stover in your research?</h2>
+    <p class="lead">Please cite the paper when you use the apps, the dataset, or the models. For questions, bug reports, or collaborations, write to <a href="mailto:andrespatrignani@ksu.edu">andrespatrignani@ksu.edu</a>.</p>
+  </div>
+  <blockquote>Patrignani, A., Bisheh, M., &amp; Nahitiya, D. (2026). Segmenting Crop Residue, Canopy, and Soil in Field Images: An Open Dataset and the Stover Tool. <a href="https://doi.org/10.22541/essoar.15010651/v1" target="_blank" rel="noopener">https://doi.org/10.22541/essoar.15010651/v1</a></blockquote>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="brand-sm">
+      <svg width="22" height="22" viewBox="0 0 100 100" aria-hidden="true"><rect x="4" y="4" width="92" height="92" rx="20" fill="#a52a2a"/><rect x="22.88" y="22.88" width="16.48" height="35.36" rx="2.64" fill="#ffd400"/><rect x="41.76" y="22.88" width="35.36" height="16.48" rx="2.64" fill="#ffd400"/><rect x="41.76" y="41.76" width="16.48" height="16.48" rx="2.64" fill="#00c800"/><rect x="60.64" y="41.76" width="16.48" height="35.36" rx="2.64" fill="#ffd400"/><rect x="22.88" y="60.64" width="35.36" height="16.48" rx="2.64" fill="#ffd400"/></svg>
+      <span>Stover · Department of Agronomy, Kansas State University</span>
+    </div>
+    <span>© 2026 Kansas State University · PolyForm Noncommercial License 1.0.0</span>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Stover logo">
+  <rect x="4" y="4" width="92" height="92" rx="20" fill="#a52a2a"/>
+  <rect x="22.88" y="22.88" width="16.48" height="35.36" rx="2.64" fill="#ffd400"/>
+  <rect x="41.76" y="22.88" width="35.36" height="16.48" rx="2.64" fill="#ffd400"/>
+  <rect x="41.76" y="41.76" width="16.48" height="16.48" rx="2.64" fill="#00c800"/>
+  <rect x="60.64" y="41.76" width="16.48" height="35.36" rx="2.64" fill="#ffd400"/>
+  <rect x="22.88" y="60.64" width="35.36" height="16.48" rx="2.64" fill="#ffd400"/>
+</svg>

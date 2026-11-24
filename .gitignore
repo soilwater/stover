@@ -1,0 +1,16 @@
+# Only the website, web app, dataset sample, README, and license are published.
+/code/
+/desktop/
+/originals/
+/videos/
+/models/
+/image_data/
+/label_data/
+/manuscript/
+
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+Thumbs.db
+desktop.ini
+.DS_Store
