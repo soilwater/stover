@@ -5,6 +5,47 @@ const compare = document.getElementById('compare');
 const split = document.getElementById('hero-split');
 split.addEventListener('input', () => compare.style.setProperty('--split', split.value + '%'));
 
+// ── Hero: a few example photos in turn (classified by the model; s soil, p canopy, r residue) ──
+const HERO = [
+  { id: 'start', s: 58.0, p: 2.9,  r: 39.2 },
+  { id: '1500',  s: 15.9, p: 44.4, r: 39.7 },
+  { id: '2300',  s: 24.0, p: 0.0,  r: 76.0 },
+  { id: '0350',  s: 82.4, p: 0.2,  r: 17.4 },
+  { id: '3550',  s: 55.7, p: 0.1,  r: 44.2 },
+];
+const HERO_SECONDS = 7;
+const heroDots = document.getElementById('hero-dots');
+let heroIndex = 0, heroTimer = null;
+
+function showHero(k) {
+  heroIndex = k;
+  const h = HERO[k];
+  document.getElementById('hero-photo').src = `assets/hero/${h.id}_photo.jpg`;
+  document.getElementById('hero-mask').src = `assets/hero/${h.id}_mask.png`;
+  document.getElementById('hero-r').textContent = h.r.toFixed(1);
+  document.getElementById('hero-p').textContent = h.p.toFixed(1);
+  document.getElementById('hero-s').textContent = h.s.toFixed(1);
+  document.getElementById('hero-t').textContent = (h.r + h.p).toFixed(1);
+  heroDots.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', i === k));
+}
+
+HERO.forEach((h, k) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.setAttribute('aria-label', `Example ${k + 1}`);
+  b.addEventListener('click', () => { showHero(k); restartHero(); });
+  heroDots.appendChild(b);
+  if (k > 0) { new Image().src = `assets/hero/${h.id}_photo.jpg`; new Image().src = `assets/hero/${h.id}_mask.png`; }
+});
+
+function restartHero() {
+  clearInterval(heroTimer);
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  heroTimer = setInterval(() => { if (!compare.matches(':hover')) showHero((heroIndex + 1) % HERO.length); }, HERO_SECONDS * 1000);
+}
+showHero(0);
+restartHero();
+
 // ── Gallery ─────────────────────────────────────────────────────────────────
 // Percent cover from each label image: s soil, p plant (canopy), r residue. The order mixes cover types,
 // so any number of complete rows shows a varied set.
@@ -16,7 +57,7 @@ const TILES = [
   { id: 3385, s: 2.0,  p: 97.9, r: 0.1  },
   { id: 3673, s: 8.1,  p: 8.0,  r: 83.8 },
   { id: 4265, s: 9.7,  p: 0.0,  r: 90.3 },
-  { id: 3657, s: 77.7, p: 15.1, r: 7.2  },
+  { id: 1950, s: 71.8, p: 0.0,  r: 28.2 },
   { id: 4643, s: 44.5, p: 0.0,  r: 55.5 },
   { id: 3453, s: 7.2,  p: 92.1, r: 0.6  },
 ];

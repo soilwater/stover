@@ -38,7 +38,7 @@
   <div class="hero-text">
     <div class="pill"><span class="swatches"><i style="background:var(--residue)"></i><i style="background:var(--canopy)"></i><i style="background:var(--soil)"></i></span>Pixel-level ground cover</div>
     <h1>Crop residue cover from a single photo.</h1>
-    <p>Stover classifies every pixel of a downward-facing field photo as crop residue, green vegetation, or bare soil, and reports residue cover, canopy cover, and total ground cover. It runs on your own computer, and your images are never uploaded.</p>
+    <p>Stover classifies every pixel of a downward-facing field photo as crop residue, green vegetation, or bare soil, and reports residue cover, canopy cover, and total ground cover.</p>
     <div class="actions">
       <a class="btn btn-primary" href="https://github.com/soilwater/stover/releases/latest" data-download>
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><rect x="2" y="2" width="9.5" height="9.5"/><rect x="12.5" y="2" width="9.5" height="9.5"/><rect x="2" y="12.5" width="9.5" height="9.5"/><rect x="12.5" y="12.5" width="9.5" height="9.5"/></svg>
@@ -54,8 +54,8 @@
 
   <figure>
     <div class="compare" id="compare">
-      <img src="assets/hero_photo.jpg" alt="Downward-facing photo of scattered crop residue on bare soil with a few small weeds" width="1100" height="1100">
-      <img class="mask" src="assets/hero_mask.png" alt="" width="1100" height="1100">
+      <img id="hero-photo" src="assets/hero/start_photo.jpg" alt="Downward-facing field photo" width="1100" height="1100">
+      <img id="hero-mask" class="mask" src="assets/hero/start_mask.png" alt="" width="1100" height="1100">
       <div class="divider" aria-hidden="true"></div>
       <label for="hero-split" class="visually-hidden">Reveal the classification</label>
       <input id="hero-split" type="range" min="0" max="100" step="1" value="50">
@@ -64,11 +64,12 @@
       <span class="tag" style="right:14px">classified</span>
     </div>
     <figcaption class="readout">
-      <div><div class="lab"><i style="background:var(--residue)"></i>Residue</div><div class="val">39.2<small>%</small></div></div>
-      <div><div class="lab"><i style="background:var(--canopy)"></i>Canopy</div><div class="val">2.9<small>%</small></div></div>
-      <div><div class="lab"><i style="background:var(--soil)"></i>Soil</div><div class="val">58.0<small>%</small></div></div>
-      <div class="total"><div class="lab">Total cover</div><div class="val">42.1<small>%</small></div></div>
+      <div><div class="lab"><i style="background:var(--residue)"></i>Residue</div><div class="val"><span id="hero-r">39.2</span><small>%</small></div></div>
+      <div><div class="lab"><i style="background:var(--canopy)"></i>Canopy</div><div class="val"><span id="hero-p">2.9</span><small>%</small></div></div>
+      <div><div class="lab"><i style="background:var(--soil)"></i>Soil</div><div class="val"><span id="hero-s">58.0</span><small>%</small></div></div>
+      <div class="total"><div class="lab">Total cover</div><div class="val"><span id="hero-t">42.1</span><small>%</small></div></div>
     </figcaption>
+    <div class="hero-dots" id="hero-dots" role="group" aria-label="Example photos"></div>
     <p class="fine">Total ground cover is residue plus canopy.</p>
   </figure>
 </section>
@@ -121,19 +122,6 @@
     <li class="card"><div class="num">03</div><h3>Classify</h3><p>A neural network classifies every pixel as residue, canopy, or soil at 1024 × 1024 pixels, about 1 mm per pixel.</p></li>
     <li class="card"><div class="num">04</div><h3>Export</h3><p>Export data as CSV, classified images, or a PDF report.</p></li>
   </ol>
-</section>
-
-<!-- Privacy -->
-<section class="wrap section">
-  <div class="band">
-    <h2>Your images stay on your computer.</h2>
-    <ul>
-      <li><strong>No account</strong><span>No sign-up or login required.</span></li>
-      <li><strong>No uploads</strong><span>Images are processed on your own device.</span></li>
-      <li><strong>Works offline</strong><span>No internet connection needed to classify images.</span></li>
-      <li><strong>GPU acceleration</strong><span>Uses the graphics card when available. On the processor, results are identical, just slower.</span></li>
-    </ul>
-  </div>
 </section>
 
 <!-- Field guide -->
@@ -203,6 +191,7 @@
       </a>
     </div>
   </div>
+  <p class="fine">Both run on your computer: no account, no upload, and they work offline. Stover uses the graphics card when there is one.</p>
 </section>
 
 <!-- Dataset -->

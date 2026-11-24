@@ -116,16 +116,7 @@
 </div>
 
 <div class="controls">
-  <button id="prevBtn">‹ Prev</button>
   <span id="pageInfo">Loading…</span>
-  <button id="nextBtn">Next ›</button>
-  <label>Per page
-    <select id="pageSize">
-      <option value="60">60</option>
-      <option value="120" selected>120</option>
-      <option value="240">240</option>
-    </select>
-  </label>
 </div>
 
 <div class="grid" id="grid"></div>
@@ -160,24 +151,20 @@ let ids = [];                     // image numbers of the sample, from dataset_s
 const pad = i => ids[i-1];
 let TOTAL = 0;
 let cover = null;                 // [ [soil,plant,residue], ... ] from dataset_stats.json
-let page = 0, pageSize = 120;
 
 // ── Load the sample's image numbers and cover stats ─────────────────────────
 fetch("dataset_stats.json").then(r => r.ok ? r.json() : null).then(j => {
   if (j && Array.isArray(j.ids)) { ids = j.ids; cover = j.cover; TOTAL = ids.length; }
 }).catch(()=>{}).finally(render);
 
-// ── Render the current page of tiles ────────────────────────────────────────
+// ── Render every image of the sample on one page ────────────────────────────
 function render(){
   const grid = document.getElementById("grid");
-  const start = page*pageSize, end = Math.min(start+pageSize, TOTAL);
-  document.getElementById("pageInfo").textContent = `${start+1}–${end} of ${TOTAL}`;
-  document.getElementById("prevBtn").disabled = page===0;
-  document.getElementById("nextBtn").disabled = end>=TOTAL;
+  document.getElementById("pageInfo").textContent = `${TOTAL} images from the Stover dataset`;
 
   grid.innerHTML = "";
   const frag = document.createDocumentFragment();
-  for (let i=start+1;i<=end;i++){
+  for (let i=1;i<=TOTAL;i++){
     const n = pad(i);
     const cv = cover ? cover[i-1] : null;
     const card = document.createElement("div");
@@ -208,7 +195,6 @@ function render(){
     frag.appendChild(card);
   }
   grid.appendChild(frag);
-  window.scrollTo({top:0,behavior:"instant"});
 }
 
 // ── Modal ───────────────────────────────────────────────────────────────────
@@ -236,12 +222,6 @@ function closeModal(){
 function stepModal(d){ const t = modalIdx + d; if (t>=1 && t<=TOTAL) openModal(t); }
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
-document.getElementById("prevBtn").onclick = () => { if(page>0){page--;render();} };
-document.getElementById("nextBtn").onclick = () => { if((page+1)*pageSize<TOTAL){page++;render();} };
-document.getElementById("pageSize").onchange = e => {
-  const first = page*pageSize;               // keep roughly the same spot
-  pageSize = +e.target.value; page = Math.floor(first/pageSize); render();
-};
 document.getElementById("mClose").onclick = closeModal;
 document.getElementById("mPrev").onclick = () => stepModal(-1);
 document.getElementById("mNext").onclick = () => stepModal(1);
