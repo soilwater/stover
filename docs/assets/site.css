@@ -207,6 +207,7 @@ h1 {
 .get .meta { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
 .get p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--text-2); }
 .get .btn { align-self: flex-start; }
+.get .btns { display: flex; flex-wrap: wrap; gap: 10px; }
 
 /* Cite */
 .cite { display: grid; gap: 40px; align-items: start; padding-bottom: 96px;
