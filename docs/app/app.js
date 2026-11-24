@@ -220,15 +220,18 @@ async function initModel() {
     } else {
       if ('gpu' in navigator)
         console.warn('[stover] WebGPU is present but no GPU adapter is available — check chrome://gpu and enable hardware acceleration. Falling back to WASM (slow).');
+      ort.env.wasm.proxy = true;  // run on a background thread so the page stays responsive
       state.session = await create(['wasm']);
       state.backend = 'wasm';
     }
 
-    // Warm-up: WebGPU compiles shaders / builds kernels on the first run, so do a
-    // throwaway inference now — the user's first real image is then fast.
+    // Warm-up: WebGPU compiles shaders on the first run, so do a small throwaway
+    // inference now (the model accepts any size). The CPU needs no warm-up.
     const t0 = performance.now();
-    const warm = new ort.Tensor('float32', new Float32Array(3 * NET_SIDE * NET_SIDE), [1, 3, NET_SIDE, NET_SIDE]);
-    await state.session.run({ input: warm });
+    if (state.backend === 'webgpu') {
+      const W = 256;
+      await state.session.run({ input: new ort.Tensor('float32', new Float32Array(3 * W * W), [1, 3, W, W]) });
+    }
     const warmMs = Math.round(performance.now() - t0);
 
     state.modelReady = true;
@@ -995,17 +998,12 @@ if ('serviceWorker' in navigator) {
 initTheme();
 dom.aboutVersion.textContent = VERSION;
 updateNavEnabled();
-initModel();
+const modelLoading = initModel();
 
 // Load bundled demo images once the model is ready so the first classification works.
 (async () => {
   const paths = ['demo/demo_1.jpg', 'demo/demo_2.jpg', 'demo/demo_3.jpg', 'demo/demo_4.jpg'];
-  // wait until model ready (poll briefly)
-  const waitReady = () => new Promise(res => {
-    if (state.modelReady) return res(true);
-    const t = setInterval(() => { if (state.modelReady) { clearInterval(t); res(true); } }, 200);
-    setTimeout(() => { clearInterval(t); res(state.modelReady); }, 60000);
-  });
+  const waitReady = async () => { await modelLoading; return state.modelReady; };
   try {
     const files = (await Promise.all(paths.map(async p => {
       const r = await fetch(p);
