@@ -25,5 +25,7 @@ Please cite the paper when you use the apps or the dataset:
 
 ## License
 
-Free for research, extension, and teaching under the PolyForm Noncommercial License 1.0.0 (see `LICENSE`).
+The apps are free for research, extension, and teaching under the PolyForm Noncommercial License 1.0.0 (see `LICENSE`).
+Dataset v2, including the sample in `dataset_sample/`, is licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Please cite the paper when you use it.
 For questions or collaborations, write to andrespatrignani@ksu.edu.
