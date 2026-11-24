@@ -77,10 +77,10 @@
 <!-- Stats -->
 <section class="stats" aria-label="Dataset and model">
   <div class="wrap">
-    <div class="stat"><b>5,000</b><span>hand-labeled field images in the training dataset</span></div>
+    <div class="stat"><b>5,000</b><span>images in the Stover dataset</span></div>
     <div class="stat"><b>97.2%</b><span>pixel accuracy on held-out test images</span></div>
     <div class="stat"><b>0.94</b><span>mean intersection-over-union across the three classes</span></div>
-    <div class="stat"><b>~1<small> mm</small></b><span>per pixel: each photo is classified at 1024 × 1024 pixels</span></div>
+    <div class="stat"><b>~1<small> mm</small></b><span>per pixel at 1024 × 1024 for photos taken about 1 m above the ground</span></div>
   </div>
 </section>
 
@@ -89,7 +89,7 @@
   <div class="head">
     <div class="eyebrow">Applications</div>
     <h2>Where ground cover matters</h2>
-    <p class="lead">Typical applications include quantifying residue cover after tillage and planting, soil erosion and water conservation studies, soil evaporation studies, soil carbon studies, and ground truth for satellite and drone estimates of ground cover.</p>
+    <p class="lead">Applications include quantifying residue cover after tillage and planting, soil erosion and water conservation studies, soil evaporation studies, soil carbon studies, and ground truth for satellite and drone estimates of ground cover.</p>
   </div>
 </section>
 
@@ -119,7 +119,7 @@
   <ol class="cards">
     <li class="card"><div class="num">01</div><h3>Take photos</h3><p>Use any phone or camera. Hold it at waist height and point it straight down at about one square meter of ground.</p></li>
     <li class="card"><div class="num">02</div><h3>Load images</h3><p>Load one or many JPG or PNG files. Stover reads the capture time, GPS coordinates, and device from each image’s EXIF data.</p></li>
-    <li class="card"><div class="num">03</div><h3>Classify</h3><p>A neural network classifies every pixel as residue, canopy, or soil at 1024 × 1024 pixels, about 1 mm per pixel.</p></li>
+    <li class="card"><div class="num">03</div><h3>Classify</h3><p>A neural network classifies every pixel as residue, canopy, or soil at 1024 × 1024 pixels (about 1 mm per pixel for photos taken about 1 m above the ground).</p></li>
     <li class="card"><div class="num">04</div><h3>Export</h3><p>Export data as CSV, classified images, or a PDF report.</p></li>
   </ol>
 </section>
@@ -184,14 +184,14 @@
         <i><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ecebe4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg></i>
         <div><h3>Stover on the web</h3><div class="meta">Chrome or Edge · installable · works offline</div></div>
       </div>
-      <p>Runs in your browser with nothing to install. Use Install App to add it to your desktop or phone and use it offline.</p>
+      <p>Runs in your browser with nothing to install. Use Install App to add it to your computer and use it offline.</p>
       <a class="btn btn-ghost" href="app/">
         Open the web app
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
       </a>
     </div>
   </div>
-  <p class="fine">Both run on your computer: no account, no upload, and they work offline. Stover uses the graphics card when there is one.</p>
+  <p class="fine">Both run on your computer and work offline. Images are not uploaded anywhere. Classification is faster with a graphics card than on the processor alone.</p>
 </section>
 
 <!-- Dataset -->
@@ -226,7 +226,7 @@
     <h2>Using Stover in your research?</h2>
     <p class="lead">Please cite the paper when you use the apps or the dataset. For questions, bug reports, or collaborations, write to <a href="mailto:andrespatrignani@ksu.edu">andrespatrignani@ksu.edu</a>.</p>
   </div>
-  <blockquote>Patrignani, A., Bisheh, M., &amp; Nahitiya, D. (2026). Segmenting Crop Residue, Canopy, and Soil in Field Images: An Open Dataset and the Stover Tool. <a href="https://doi.org/10.22541/essoar.15010651/v1" target="_blank" rel="noopener">https://doi.org/10.22541/essoar.15010651/v1</a></blockquote>
+  <blockquote>Patrignani, A., Bisheh, M., &amp; Nahitiya, D. (in press). Segmenting crop residue, canopy, and soil in field images: An open dataset and the Stover tool. <i>Agronomy Journal</i>.</blockquote>
 </section>
 
 </main>
