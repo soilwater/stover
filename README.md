@@ -27,8 +27,7 @@ Please cite the paper when you use the apps, the model, or the dataset:
 
 ## License
 
-The apps are free for research, extension, and teaching under the PolyForm Noncommercial License 1.0.0 (see `LICENSE`).
-Dataset v2, including the sample in `dataset_sample/`, is licensed under
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The model is licensed under
-[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Please cite the paper when you use them.
+The apps are licensed under the MIT License (see `LICENSE`). The model and dataset v2, including the sample in
+`dataset_sample/`, are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Please cite the paper when you use them.
 For questions or collaborations, write to andrespatrignani@ksu.edu.
